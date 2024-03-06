@@ -32,6 +32,8 @@ Run the following commands ( assuming you are in project root )
 | -> src -> core application logic here (eg. database, auth etc). accessible only using the /api/* path
       |
       | -> routes -> define different routers here
+      |
+      | -> app.js -> entry point for app
 
 | -> public -> frontend stuff with each directory as its own page
                e.g login dir will contain css,html,js for login page 

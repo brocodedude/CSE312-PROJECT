@@ -9,5 +9,5 @@ COPY . .
 RUN npm install
 
 # start server
-CMD node app.js
+CMD npm run start
 
