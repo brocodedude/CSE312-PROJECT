@@ -2,15 +2,12 @@
 FROM node:latest
 WORKDIR /server
 
-COPY package.json ./
-COPY package-lock.json ./
+# copy files from server
+COPY . .
 
+# install deps
 RUN npm install
 
-COPY api ./
+# start server
+CMD node app.js
 
-RUN npm install
-
-EXPOSE 9000
-
-CMD npm start

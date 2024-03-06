@@ -1,16 +1,9 @@
 version: '3.8'
 services:
-  api:
+  app:
     # Runs the API
     build:
       context: .
-      dockerfile: ./api.Dockerfile
+      dockerfile: ./Dockerfile
     ports:
-      - '9000:9000'
-  client:
-    # Builds the front end and exports static files to ./dist
-    build:
-      dockerfile: ./client.Dockerfile
-      context: .
-    ports:
-      - '3000:3000'
+      - '9006:9000'
