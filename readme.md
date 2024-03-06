@@ -38,3 +38,8 @@ Run the following commands ( assuming you are in project root )
 | -> public -> frontend stuff with each directory as its own page
                e.g login dir will contain css,html,js for login page 
 ```
+
+## TODO
+
+- Ensure content types show all the time in response headers
+- Add nosniff
