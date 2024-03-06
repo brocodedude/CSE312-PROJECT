@@ -3,25 +3,25 @@ const express = require('express');
 const path = require('path');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
-
 const indexRouter = require('./routes');
-
+const isDocker = require('./utils/docker_check')
 const app = express();
+const db = require('./db/database')
 
 const port = 9000;
 
 
 app.use(logger('dev'));
 app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+app.use(express.urlencoded({extended: false}));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', indexRouter);
 
 // catch 404 and forward to error handler
-app.use(function(req, res, next) {
-  next(createError(404));
+app.use(function (req, res, next) {
+    next(createError(404));
 });
 
 // TODO error handler
@@ -29,7 +29,11 @@ app.use(function(req, res, next) {
 
 // Listen on 8080.
 app.listen(port, () => {
-  console.log(`Hello world with port: ${port}`)
+    if (isDocker) {
+        console.log(`App is running at the port defined in docker-compose.yml`)
+    }
+
+    console.log(`App is running at ${port}`)
 })
 
 module.exports = app;

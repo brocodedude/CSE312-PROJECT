@@ -24,7 +24,7 @@ Run the following commands ( assuming you are in project root )
       ```
   * Server will be accessible at [localhost:9000](http://localhost:9000)
     
-### Directory structure
+## Directory structure
 
 ```
 
