@@ -27,7 +27,7 @@ services:
     depends_on:
       - db
     ports:
-      - '9006:9000'
+      - '8080:9000'
 
 networks:
   node_network:
