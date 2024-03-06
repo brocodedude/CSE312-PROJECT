@@ -19,12 +19,12 @@ const connectionOptions = {
 };
 
 const pgp = pgPromise();
+const db = pgp(connectionOptions);
 
 async function connectWithTimeout(timeout) {
     const startTime = Date.now();
     while (true) {
         try {
-            const db = pgp(connectionOptions);
             await db.connect();
             console.log(`Database connected at host: ${connectionOptions.host}`);
             return db; // Connection successful, return the database instance
