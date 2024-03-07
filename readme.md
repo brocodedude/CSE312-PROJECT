@@ -42,7 +42,7 @@ Use db according to [docs](https://knexjs.org/guide/query-builder.html)
 
 To create a table or "migration" go to ```src/db/migrations/20240307003739_lobbies.js```
 
-Add your table structure according to [docs](https://knexjs.org/guide/migrations.html#transactions-in-migrations) or use chatGPT
+Add your table structure according to [docs](https://knexjs.org/guide/migrations.html#transactions-in-migrations) or use you know what
 
 ```
 return knex.schema.createTable('users', function (table) {
