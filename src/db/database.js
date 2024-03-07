@@ -5,6 +5,8 @@ const environment = 'production';
 const config = knexConfig[environment];
 
 // Initialize Knex with the selected configuration
-const knex = require('knex')(config);
+const db = require('knex')(config);
+
+module.exports = db
 
 

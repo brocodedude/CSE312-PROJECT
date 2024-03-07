@@ -33,10 +33,10 @@ We are using knex library for connecting with our postgres backend
 To call the database anywhere in the app use
 
 ```
-const pg = require('knex')({client: 'pg'});
+const db = require('../db/database');
 ```
 
-Use pg according to [docs](https://knexjs.org/guide/query-builder.html)
+Use db according to [docs](https://knexjs.org/guide/query-builder.html)
 
 ### Table management
 
@@ -67,6 +67,89 @@ docker compose up --build
 
 To automatically create the tables inside the database.
 
+## Api endpoints
+
+All api endpoints are behind the ``/api`` path
+
+These are current implemented endpoints
+
+### Lobby
+
+* ```/api/lobby``` => all endpoints are require user to be authenticated
+  * ``GET /api/lobby`` => returns list of all lobbies
+    * request - no data expected all body params will be ignored
+    * response - list of lobbies in json 
+      * ```json
+        [
+         {
+          "id": 4,
+          "uid": 1,
+          "lobby_name": "lobby3"
+         },
+         {
+          "id": 5,
+          "uid": 1,
+          "lobby_name": "lobby1"
+         },
+         {
+          "id": 3,
+          "uid": 1,
+          "lobby_name": "lobby2"
+         }
+        ]
+        ```
+  * ``POST /api/lobby`` => returns created lobby id
+    * request - JSON body in the following format
+      *  ```json
+         {
+         "lobby_name": "lobby7",
+         "uid": "2" // id of the user creating the lobby
+         }
+         ```
+    * response - Created lobby ID in json
+      * ```json
+         {
+          "id": 4
+         }
+        ```
+  * ``GET /api/lobby/:id`` => Get a specific ```lobby_id``` to connect to game
+    * request - id of the lobby in the path
+      * ```/api/lobby/4```
+    * response - lobby_id can be used to connect to particular game
+      * ```json
+         {
+          	"lobby_id": "3934cb5c-e404-4ecd-953d-b7db4623862d"
+         }
+        ```
+  * ``DELETE /api/lobby/:id`` => deletes a lobby
+    * request - id of the lobby in the path
+      * ```/api/lobby/4```
+    * response - lobby that was deleted in list. Empty list if the id doesn't exist
+      * ```json
+         [
+          {
+          "id": 4,
+          "uid": 1,
+          "lobby_name": "lobby3"
+          }
+         ]
+        ```
+  * ``PATCH /api/lobby/:id`` => Update a lobby name
+    * request - id of the lobby in the path and the updated lobby name in JSON body
+      * ```/api/lobby/4```
+      * ```json
+         {
+          "lobby_name": "New lobby name"
+         }
+        ```
+    * response - lobby id that was updated
+      * ```json
+         {
+          "lobby_id": "4"
+         }
+        ```
+    
+      
 ## Directory structure
 
 ```

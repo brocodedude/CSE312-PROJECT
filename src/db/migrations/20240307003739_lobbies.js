@@ -13,9 +13,9 @@ exports.up = function (knex) {
         }
     ).createTable('lobbies', function (table) {
         table.increments('id').primary();
-        table.integer('uid').unsigned();
+        table.integer('uid').unsigned().notNullable();
         table.foreign('uid').references('id').inTable('users');
-        table.string('lobby_name').unique().notNullable();
+        table.string('lobby_name').notNullable();
         table.string('lobby_id').unique().notNullable();
         table.timestamps(true, true);
     });
