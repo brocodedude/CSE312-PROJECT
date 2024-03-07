@@ -1,6 +1,6 @@
 const {check} = require('express-validator')
 
-const uid = check('uid').isString().trim().escape();
+const uid = check('uid').isNumeric();
 
 const lobby = check('lobby_name').isString().trim().escape();
 
