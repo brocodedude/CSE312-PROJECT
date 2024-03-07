@@ -1,7 +1,5 @@
 const express = require('express');
-const path = require("path");
 const router = express.Router();
-const idGen = require('../utils/random_num')
 const {list, insert, getLobbyId, _delete, update} = require('./lobby.service')
 const validator = require('../middleware/lobby_fields.middleware')
 const {v4: uuidv4} = require('uuid');
@@ -75,7 +73,8 @@ router.patch('/:id', async function (req, res, next) {
     }
 
     try {
-        const result = await update(id, lobbyName)
+        // encode to escape any characters
+        const result = await update(id, lobbyName.encode())
         res.status(200).send(JSON.stringify(result[0]))
     } catch (e) {
         console.error(e)
@@ -91,7 +90,7 @@ router.delete('/:id', async function (req, res, next) {
 
     try {
         const result = await _delete(id)
-        res.status(200).send(JSON.stringify(result))
+        res.status(200).send(JSON.stringify(result[0]))
     } catch (e) {
         console.error(e)
         res.status(400).send('Bad request. Make sure you are sending the correct data with correct values')

@@ -65,7 +65,7 @@ app.get('/images/:imageName', (req, res) => {
 });
 
 app.use('/', indexRouter);
-app.use('/lobby', authMiddleware, lobbyRouter)
+app.use('/api/lobby', authMiddleware, lobbyRouter)
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
