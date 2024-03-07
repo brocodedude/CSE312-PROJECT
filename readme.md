@@ -124,13 +124,15 @@ These are current implemented endpoints
   * ``DELETE /api/lobby/:id`` => deletes a lobby
     * request - id of the lobby in the path
       * ```/api/lobby/4```
-    * response - lobby that was deleted
+    * response - lobby that was deleted in list. Empty list if the id doesn't exist
       * ```json
-         {
+         [
+          {
           "id": 4,
           "uid": 1,
           "lobby_name": "lobby3"
-         }
+          }
+         ]
         ```
   * ``PATCH /api/lobby/:id`` => Update a lobby name
     * request - id of the lobby in the path and the updated lobby name in JSON body
