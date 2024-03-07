@@ -1,6 +1,6 @@
 // Update with your config settings.
 require('dotenv').config({path:'../../.env'}); // Load variables from .env file
-const isDocker = require('./src/utils/docker_check')
+const isDocker = require('../utils/docker_check')
 
 const user = process.env.DB_USER
 const pass = process.env.DB_PASS
