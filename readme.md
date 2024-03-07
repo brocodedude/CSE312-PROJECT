@@ -23,7 +23,38 @@ Run the following commands ( assuming you are in project root )
       npm run dev
       ```
   * Server will be accessible at [localhost:9000](http://localhost:9000)
-    
+
+## Database stuff
+
+We are using knex library for connecting with our postgres backend
+
+To create a table or "migration" go to ```src/db/migrations/20240307003739_lobbies.js```
+
+Add your table structure according to [docs](https://knexjs.org/guide/migrations.html#transactions-in-migrations) or use chatGPT
+
+```
+return knex.schema.createTable('users', function (table) {
+            table.increments('id').primary();
+    }).createTable('lobbies', function (table) {
+        table.increments('id').primary();
+        table.integer('uid').unsigned();
+        table.foreign('uid').references('id').inTable('users');
+        table.string('lobby_name').unique().notNullable();
+        table.string('lobby_id').unique().notNullable();
+        table.timestamps(true, true);
+    }).createTable('new_table', function (table) {
+      .... define your table here
+    });
+```
+
+Use 
+
+```
+docker compose up --build
+```
+
+To automatically create the tables inside the database.
+
 ## Directory structure
 
 ```
