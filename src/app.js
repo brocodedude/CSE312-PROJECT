@@ -4,9 +4,10 @@ const path = require('path');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 const indexRouter = require('./routes');
+const lobbyRouter = require('./lobby_management/lobby.controller')
+const authMiddleware = require('./middleware/auth_middleware')
 const isDocker = require('./utils/docker_check')
 const app = express();
-const db = require('./db/database')
 
 const port = 9000;
 
@@ -64,6 +65,7 @@ app.get('/images/:imageName', (req, res) => {
 });
 
 app.use('/', indexRouter);
+app.use('/lobby',authMiddleware, lobbyRouter)
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
