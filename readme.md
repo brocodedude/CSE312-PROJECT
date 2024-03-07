@@ -28,6 +28,18 @@ Run the following commands ( assuming you are in project root )
 
 We are using knex library for connecting with our postgres backend
 
+### Usage 
+
+To call the database anywhere in the app use
+
+```
+const pg = require('knex')({client: 'pg'});
+```
+
+Use pg according to [docs](https://knexjs.org/guide/query-builder.html)
+
+### Table management
+
 To create a table or "migration" go to ```src/db/migrations/20240307003739_lobbies.js```
 
 Add your table structure according to [docs](https://knexjs.org/guide/migrations.html#transactions-in-migrations) or use chatGPT

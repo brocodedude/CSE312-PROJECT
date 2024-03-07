@@ -12,7 +12,7 @@ const host = isDocker ? 'db' : 'localhost'
  */
 module.exports = {
   production: {
-    client: 'postgresql',
+    client: 'pg',
     connection: {
       database: dbName,
       user:     user,
