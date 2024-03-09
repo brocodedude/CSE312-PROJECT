@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser-arcade-physics.min.js"></script>
+    <script src="https://cdn.socket.io/4.3.1/socket.io.min.js"></script>
+    <title>Lets play a game</title>
+</head>
+<body>
+<script>
+    const lobbyId = "{{lobby}}";
+    const userId = "{{user}}";
+    //
+    // if (userId === "{{lobby}}" || lobbyId === "{{user}}") {
+    //     console.log("failed to get id or user")
+    //     throw new DOMException("Id should not be missing dum dum")
+    // }
+
+    let allPlayers = {};
+
+    const socket = io();
+
+    // default socket io connection message
+    socket.on('connect', () => {
+        socket.emit('join', {'lobbyId':lobbyId, 'userId':userId})
+        console.log('Connected')
+    })
+
+    // custom connection message used by the project
+    socket.on('set', handleJoin)
+    socket.on('pos', handlePos)
+    socket.on('dis', handleDis)
+    socket.on('pellet', function (msg) {
+        console.log('Pellet eaten')
+    })
+
+    function handleJoin(msg) {
+        console.log(msg)
+        const json = JSON.parse(msg);
+        if (!json.spriteType) {
+            throw new DOMException("No sprite id found")
+        }
+        console.log(json.playerid)
+        allPlayers[json.playerid] = json
+    }
+
+    function handleDis(msg) {
+        const json = JSON.parse(msg);
+        console.log('disocnnect')
+        console.log(json.playerid)
+        delete allPlayers[json.playerid]
+    }
+
+    function handlePos(msg) {
+        const json = JSON.parse(msg);
+        let spriteId = json.spriteType
+        // update player
+        allPlayers[json.id] = json
+
+        // update sprites
+        playerSprites[spriteId].x = json.x
+        playerSprites[spriteId].y = json.y
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // main game
+    let playerSprites = {'pac': null, 'gh1': null, 'gh2': null, 'gh3': null}
+    let stars;
+    let platforms;
+    let cursors;
+
+    const config = {
+        type: Phaser.AUTO,
+        width: 800,
+        height: 600,
+        physics: {
+            default: 'arcade',
+            arcade: {
+                gravity: {y: 300},
+                debug: false
+            }
+        },
+        scene: {
+            preload: preload,
+            create: create,
+            update: update
+        }
+    };
+
+    const game = new Phaser.Game(config);
+
+    function preload() {
+        // this.load.image('sky', '/assets/sky.png');
+        // this.load.image('ground', '/assets/platform.png');
+        // this.load.image('star', '/assets/star.png');
+        // this.load.image('bomb', '/assets/bomb.png');
+        // this.load.image('dude', '/assets/player.png');
+    }
+
+    function create() {
+        // this.add.image(400, 300, 'sky');
+        //
+        // platforms = this.physics.add.staticGroup();
+        //
+        // platforms.create(400, 568, 'ground').setScale(2).refreshBody();
+        //
+        // platforms.create(600, 400, 'ground');
+        // platforms.create(50, 250, 'ground');
+        // platforms.create(750, 220, 'ground');
+        //
+        // cursors = this.input.keyboard.createCursorKeys();
+        //
+        // // load in initial sprites
+        // for (let playerType in playerSprites) {
+        //     let tmp = this.physics.add.sprite(400, 300, 'dude');
+        //     tmp.setOrigin(0.5);
+        //
+        //     // Set the width and height of the player sprite
+        //     tmp.displayWidth = 64; // Set width to 64 pixels
+        //     tmp.displayHeight = 64; // Set height to 64 pixels
+        //
+        //     this.physics.add.collider(tmp, platforms);
+        //
+        //     tmp.id = playerType
+        //
+        //     playerSprites[playerType] = tmp
+        // }
+    }
+
+    function update() {
+        // let spriteId = allPlayers[userId].spriteType
+        //
+        // if (cursors.left.isDown) {
+        //     playerSprites[spriteId].setVelocityX(-160);
+        // } else if (cursors.right.isDown) {
+        //     playerSprites[spriteId].setVelocityX(160);
+        // } else {
+        //     playerSprites[spriteId].setVelocityX(0);
+        // }
+        //
+        // if (cursors.up.isDown && playerSprites[spriteId].body.touching.down) {
+        //     playerSprites[spriteId].setVelocityY(-330);
+        // }
+        //
+        // allPlayers[userId].x = playerSprites[spriteId].x
+        // allPlayers[userId].y = playerSprites[spriteId].y
+        // allPlayers[userId].type = 'pos'
+
+
+        // ws.send(JSON.stringify(allPlayers[userId]))
+    }
+
+</script>
+
+<div id="game-container"></div>
+
+</body>
+</html>`
