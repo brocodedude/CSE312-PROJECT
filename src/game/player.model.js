@@ -9,7 +9,6 @@ class Player {
      * @param {string} y
      */
     constructor(commandType, playerId, user, spriteType, x, y) {
-        this.commandType = commandType;
         this.playerid = playerId;
         this.user = user;
         this.spriteType = spriteType;

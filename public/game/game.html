@@ -21,7 +21,7 @@
 
     // default socket io connection message
     socket.on('connect', () => {
-        socket.emit('join', {'lobbyId':lobbyId, 'userId':userId})
+        socket.emit('join', {'lobbyId': lobbyId, 'userId': userId})
         console.log('Connected')
     })
 
@@ -34,24 +34,22 @@
     })
 
     function handleJoin(msg) {
-        console.log(msg)
-        const json = JSON.parse(msg);
+        let json = JSON.parse(msg);
         if (!json.spriteType) {
             throw new DOMException("No sprite id found")
         }
-        console.log(json.playerid)
         allPlayers[json.playerid] = json
     }
 
     function handleDis(msg) {
         const json = JSON.parse(msg);
-        console.log('disocnnect')
+        console.log('disconnect')
         console.log(json.playerid)
         delete allPlayers[json.playerid]
     }
 
     function handlePos(msg) {
-        const json = JSON.parse(msg);
+        let json = JSON.parse(msg);
         let spriteId = json.spriteType
         // update player
         allPlayers[json.id] = json
@@ -89,64 +87,70 @@
     const game = new Phaser.Game(config);
 
     function preload() {
-        // this.load.image('sky', '/assets/sky.png');
-        // this.load.image('ground', '/assets/platform.png');
-        // this.load.image('star', '/assets/star.png');
-        // this.load.image('bomb', '/assets/bomb.png');
-        // this.load.image('dude', '/assets/player.png');
+        this.load.image('sky', '/assets/sky.png');
+        this.load.image('ground', '/assets/platform.png');
+        this.load.image('star', '/assets/star.png');
+        this.load.image('bomb', '/assets/bomb.png');
+        this.load.image('dude', '/assets/player.png');
     }
 
     function create() {
-        // this.add.image(400, 300, 'sky');
-        //
-        // platforms = this.physics.add.staticGroup();
-        //
-        // platforms.create(400, 568, 'ground').setScale(2).refreshBody();
-        //
-        // platforms.create(600, 400, 'ground');
-        // platforms.create(50, 250, 'ground');
-        // platforms.create(750, 220, 'ground');
-        //
-        // cursors = this.input.keyboard.createCursorKeys();
-        //
-        // // load in initial sprites
-        // for (let playerType in playerSprites) {
-        //     let tmp = this.physics.add.sprite(400, 300, 'dude');
-        //     tmp.setOrigin(0.5);
-        //
-        //     // Set the width and height of the player sprite
-        //     tmp.displayWidth = 64; // Set width to 64 pixels
-        //     tmp.displayHeight = 64; // Set height to 64 pixels
-        //
-        //     this.physics.add.collider(tmp, platforms);
-        //
-        //     tmp.id = playerType
-        //
-        //     playerSprites[playerType] = tmp
-        // }
+        this.add.image(400, 300, 'sky');
+
+        platforms = this.physics.add.staticGroup();
+
+        platforms.create(400, 568, 'ground').setScale(2).refreshBody();
+
+        platforms.create(600, 400, 'ground');
+        platforms.create(50, 250, 'ground');
+        platforms.create(750, 220, 'ground');
+
+        cursors = this.input.keyboard.createCursorKeys();
+
+        // load in initial sprites
+        for (let playerType in playerSprites) {
+            let tmp = this.physics.add.sprite(400, 300, 'dude');
+            tmp.setOrigin(0.5);
+
+            // Set the width and height of the player sprite
+            tmp.displayWidth = 64; // Set width to 64 pixels
+            tmp.displayHeight = 64; // Set height to 64 pixels
+
+            this.physics.add.collider(tmp, platforms);
+
+
+            tmp.id = playerType
+
+            playerSprites[playerType] = tmp
+        }
     }
 
     function update() {
-        // let spriteId = allPlayers[userId].spriteType
-        //
-        // if (cursors.left.isDown) {
-        //     playerSprites[spriteId].setVelocityX(-160);
-        // } else if (cursors.right.isDown) {
-        //     playerSprites[spriteId].setVelocityX(160);
-        // } else {
-        //     playerSprites[spriteId].setVelocityX(0);
-        // }
-        //
-        // if (cursors.up.isDown && playerSprites[spriteId].body.touching.down) {
-        //     playerSprites[spriteId].setVelocityY(-330);
-        // }
-        //
-        // allPlayers[userId].x = playerSprites[spriteId].x
-        // allPlayers[userId].y = playerSprites[spriteId].y
-        // allPlayers[userId].type = 'pos'
+        const tmp = allPlayers[userId]
+        // initial empty because websocket is requesting info
+        if (tmp === undefined) {
+            console.log('waiting for player info')
+            return
+        }
 
+        let spriteId = allPlayers[userId].spriteType
 
-        // ws.send(JSON.stringify(allPlayers[userId]))
+        if (cursors.left.isDown) {
+            playerSprites[spriteId].setVelocityX(-160);
+        } else if (cursors.right.isDown) {
+            playerSprites[spriteId].setVelocityX(160);
+        } else {
+            playerSprites[spriteId].setVelocityX(0);
+        }
+
+        if (cursors.up.isDown && playerSprites[spriteId].body.touching.down) {
+            playerSprites[spriteId].setVelocityY(-330);
+        }
+
+        allPlayers[userId].x = playerSprites[spriteId].x
+        allPlayers[userId].y = playerSprites[spriteId].y
+
+        socket.emit('pos', JSON.stringify(allPlayers[userId]))
     }
 
 </script>

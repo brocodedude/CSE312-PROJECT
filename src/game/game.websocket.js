@@ -93,6 +93,8 @@ function handleDisconnect(disconnectReason, socket) {
 }
 
 function handlePosMsg(msg, socket) {
+    // send pos data to everyone but the client
+    socket.broadcast.emit('pos', msg)
 }
 
 function handlePelletMsg(msg, socket) {
