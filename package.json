@@ -6,7 +6,8 @@
     "start": "node src/app.js",
     "dev": "nodemon src/app.js",
     "make-tables": "knex migrate:latest --env=production --knexfile=./src/db/knexfile.js",
-    "delete-tables": "knex migrate:rollback --env=production --knexfile=./src/db/knexfile.js"
+    "delete-tables": "knex migrate:rollback --env=production --knexfile=./src/db/knexfile.js",
+    "test": "node ./src/utils/html_inserter.js"
   },
   "dependencies": {
     "cookie-parser": "~1.4.4",
@@ -19,6 +20,7 @@
     "knex": "^3.1.0",
     "morgan": "~1.9.1",
     "pg": "^8.11.3",
+    "socket.io": "^4.7.4",
     "uuid": "^9.0.1"
   },
   "devDependencies": {
