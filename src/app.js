@@ -98,15 +98,9 @@ app.use(function (req, res, next) {
 // Listen on 8080.
 // setup lobbies then start the server
 initActiveLobbies().then(() => {
-        let host = process.env.HOST
-
-        if (host === undefined) {
-            host = 'localhost'
-        }
-
-        server.listen(port, host, () => {
+        server.listen(port, () => {
             if (isDocker) {
-                console.log(`App is running at ${host}:8080 or the port defined in docker-compose.yml`)
+                console.log(`App is running at localhost:8080 or the port defined in docker-compose.yml`)
                 return
             }
 
