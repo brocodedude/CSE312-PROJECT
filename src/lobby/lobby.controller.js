@@ -5,6 +5,8 @@ const validator = require('../middleware/lobby_fields.middleware')
 const {v4: uuidv4} = require('uuid');
 const {validationResult} = require("express-validator");
 const he = require('he');
+const {activeLobbies} = require("../game/game.service");
+const LobbyModel = require("../game/lobby.model");
 
 router.get('/', async function (req, res, next) {
     try {
@@ -51,6 +53,8 @@ router.post('/', validator, async function (req, res, next) {
 
     try {
         const result = await insert(uid, lobby_name, lobbyId)
+        // add to active lobbies
+        activeLobbies[lobbyId] = new LobbyModel()
         res.status(201).send(JSON.stringify(result[0]))
     } catch (e) {
         console.error(e)
@@ -91,6 +95,8 @@ router.delete('/:id', async function (req, res, next) {
 
     try {
         const result = await _delete(id)
+        // remove from active lobbies
+        delete activeLobbies[id]
         res.status(200).send(JSON.stringify(result))
     } catch (e) {
         console.error(e)
