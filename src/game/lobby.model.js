@@ -7,7 +7,9 @@ class LobbyModel {
     // todo figure out how to do pellets
 
     // which player is controlling which character
-    charactersList = ['pac', 'gh1', 'gh2', 'gh3']
+    charactersList = ['pcm', 'gh1', 'gh2', 'gh3']
+    defaultCharacterAnimList = ['pacmanDefault', 'ghostRedNorth', 'ghostBlueNorth', 'ghostPinkNorth']
+
     /**
      * @type {Object.<string, Player>}
      */
@@ -18,7 +20,6 @@ class LobbyModel {
     /**
      *
      * @param {string} playerTmpId
-     * @param {string} userId
      * @return {boolean}
      */
     join(playerTmpId) {
@@ -29,13 +30,22 @@ class LobbyModel {
         }
 
         // randomly assign an available sprite
-        const spriteId = this.charactersList[getRandomNumber(0, this.charactersList.length - 1)]
+        const chIndex = getRandomNumber(0, this.charactersList.length - 1)
+        const spriteId = this.charactersList[chIndex]
+        const chAnim = this.defaultCharacterAnimList[chIndex]
 
         // add new player to lobby
-        this.connectedPlayers[playerTmpId] = new Player('join', playerTmpId, 'Example-user-name', spriteId, "0", "0",)
+        this.connectedPlayers[playerTmpId] = new Player(
+            'join',
+            playerTmpId,
+            'Example-user-name',  // todo get user name
+            spriteId,
+            "0",
+            "0",
+            chAnim
+        )
         return true
     }
-
 
 
     leave(playerTmpId) {

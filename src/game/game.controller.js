@@ -1,8 +1,8 @@
 const {io} = require('../server')
 const express = require("express");
 const {v4: uuidv4} = require("uuid");
-
-// servies
+const path = require('path')
+// services
 const {activeLobbies, joinLobby} = require('./game.service')
 const insertValuesInHTML = require('../utils/html_inserter')
 const {getLobbyId} = require("../lobby/lobby.service");
@@ -58,6 +58,15 @@ router.get('/play', async (req, res, next) => {
     }
 })
 
+router.get('/test', async (req, res, next) => {
+    try {
+        const fPath = path.resolve('./public/game/test.html');
+        res.sendFile(fPath);
+    } catch (e) {
+        console.log(e)
+        res.status(403).send('Something went wrong, contact web admins')
+    }
+})
 
 io.on('connection', (socket) => {
     socket.on('join', (msg) => {

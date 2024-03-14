@@ -9,11 +9,6 @@
 <script>
     const lobbyId = "{{lobby}}";
     const userId = "{{user}}";
-    //
-    // if (userId === "{{lobby}}" || lobbyId === "{{user}}") {
-    //     console.log("failed to get id or user")
-    //     throw new DOMException("Id should not be missing dum dum")
-    // }
 
     let allPlayers = {};
 
@@ -54,29 +49,52 @@
         // update player
         allPlayers[json.id] = json
 
-        // update sprites
-        playerSprites[spriteId].x = json.x
-        playerSprites[spriteId].y = json.y
+        // update other player sprites
+        playerSprites[spriteId][0].x = json.x
+        playerSprites[spriteId][0].y = json.y
+        try {
+            playerSprites[spriteId][0].anims.play(json.spriteAnim, true)
+        } catch (e) {
+            // if invalid anim default to neutral image
+            playerSprites[spriteId][0].anims.play()
+        }
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // main game
-    let playerSprites = {'pac': null, 'gh1': null, 'gh2': null, 'gh3': null}
-    let stars;
-    let platforms;
     let cursors;
+
+    // mapped sprite id with:
+    // playerInfo
+    // default anim
+    // anim base so that we can add direction
+    // start pos : {x, y}
+    let playerSprites = {
+        'pcm': [null, 'pacmanDefault', 'pacman', [400, 100]],
+        'gh1': [null, 'ghostRedNorth', 'ghostRed', [400, 200]],
+        'gh2': [null, 'ghostBlueNorth', 'ghostBlue', [400, 300]],
+        'gh3': [null, 'ghostPinkNorth', 'ghostPink', [400, 400]],
+    }
 
     const config = {
         type: Phaser.AUTO,
-        width: 800,
-        height: 600,
+        width: 1200,
+        height: 720,
+        backgroundColor: 0x000000,
         physics: {
             default: 'arcade',
             arcade: {
-                gravity: {y: 300},
-                debug: false
+                gravity: 0,
+                debug: true
             }
         },
+        scale: {
+            mode: Phaser.Scale.FIT,
+            autoCenter: Phaser.Scale.CENTER_BOTH,
+            parent: 'thegame'
+
+        },
+        pixelArt: true,
         scene: {
             preload: preload,
             create: create,
@@ -87,41 +105,59 @@
     const game = new Phaser.Game(config);
 
     function preload() {
-        this.load.image('sky', '/assets/sky.png');
-        this.load.image('ground', '/assets/platform.png');
-        this.load.image('star', '/assets/star.png');
-        this.load.image('bomb', '/assets/bomb.png');
-        this.load.image('dude', '/assets/player.png');
+        // sprite sheets
+        this.load.spritesheet("pacman", "assets/pacmanSpriteSheet.png", {
+            frameWidth: 50,
+            frameHeight: 50,
+        });
+        this.load.spritesheet("ghosts", "assets/ghosts.png", {
+            frameWidth: 50,
+            frameHeight: 50,
+        });
+        this.load.spritesheet("fruits", "assets/fruits.png", {
+            frameWidth: 50,
+            frameHeight: 50,
+        });
     }
 
     function create() {
-        this.add.image(400, 300, 'sky');
-
-        platforms = this.physics.add.staticGroup();
-
-        platforms.create(400, 568, 'ground').setScale(2).refreshBody();
-
-        platforms.create(600, 400, 'ground');
-        platforms.create(50, 250, 'ground');
-        platforms.create(750, 220, 'ground');
-
+        // keyboard detect
         cursors = this.input.keyboard.createCursorKeys();
+
+        // Create purple borders
+        const borderThickness = 10;
+        const borderGraphics = this.add.graphics();
+        borderGraphics.lineStyle(borderThickness, 0x800080, 1); // Purple color
+        borderGraphics.strokeRect(borderThickness / 2, borderThickness / 2, config.width - borderThickness, config.height - borderThickness);
+
+
+        // create animations
+        pacmanAnimInit(this)
+        ghostsAnimInit(this)
 
         // load in initial sprites
         for (let playerType in playerSprites) {
-            let tmp = this.physics.add.sprite(400, 300, 'dude');
+            const sprite = playerSprites[playerType]
+            const defaultAnim = sprite[1]
+            const startPos = sprite[3]
+
+            let tmp = this.physics.add.sprite(
+                startPos[0],
+                startPos[1],
+                playerType === 'pcm' ? 'pacman' : 'ghosts'
+            );
+
+            tmp.anims.play(defaultAnim);
             tmp.setOrigin(0.5);
+            tmp.setCollideWorldBounds(true);
 
             // Set the width and height of the player sprite
-            tmp.displayWidth = 64; // Set width to 64 pixels
-            tmp.displayHeight = 64; // Set height to 64 pixels
-
-            this.physics.add.collider(tmp, platforms);
-
+            // tmp.displayWidth = 48; // Set width to 64 pixels
+            // tmp.displayHeight = 48; // Set height to 64 pixels
 
             tmp.id = playerType
-
-            playerSprites[playerType] = tmp
+            // attach player info
+            playerSprites[playerType][0] = tmp
         }
     }
 
@@ -133,29 +169,119 @@
             return
         }
 
-        let spriteId = allPlayers[userId].spriteType
+        let currentPlayerSpriteType = allPlayers[userId].spriteType
+        // anims
+        const neutralAnim = playerSprites[currentPlayerSpriteType][1]
+        const anim = playerSprites[currentPlayerSpriteType][2]
+        let curAnim = neutralAnim
+        // movement
+        let movementSpeed = -160
 
         if (cursors.left.isDown) {
-            playerSprites[spriteId].setVelocityX(-160);
+            // remove vertical velocity
+            playerSprites[currentPlayerSpriteType][0].setVelocityY(0);
+            playerSprites[currentPlayerSpriteType][0].setVelocityX(movementSpeed);
+            // set anim
+            curAnim = `${anim}West`
+            setSpriteAnim(playerSprites[currentPlayerSpriteType][0], curAnim)
+
         } else if (cursors.right.isDown) {
-            playerSprites[spriteId].setVelocityX(160);
+            // remove vertical velocity
+            playerSprites[currentPlayerSpriteType][0].setVelocityY(0);
+            playerSprites[currentPlayerSpriteType][0].setVelocityX(-movementSpeed);
+
+            curAnim = `${anim}East`
+            setSpriteAnim(playerSprites[currentPlayerSpriteType][0], curAnim)
+        } else if (cursors.up.isDown) {
+            // remove horizontal velocity
+            playerSprites[currentPlayerSpriteType][0].setVelocityX(0);
+            playerSprites[currentPlayerSpriteType][0].setVelocityY(movementSpeed);
+
+            curAnim = `${anim}North`
+            setSpriteAnim(playerSprites[currentPlayerSpriteType][0], curAnim)
+        } else if (cursors.down.isDown) {
+            // remove horizontal velocity
+            playerSprites[currentPlayerSpriteType][0].setVelocityX(0);
+            playerSprites[currentPlayerSpriteType][0].setVelocityY(-movementSpeed);
+
+            curAnim = `${anim}South`
+            setSpriteAnim(playerSprites[currentPlayerSpriteType][0], curAnim)
         } else {
-            playerSprites[spriteId].setVelocityX(0);
+            playerSprites[currentPlayerSpriteType][0].setVelocityY(0);
+            playerSprites[currentPlayerSpriteType][0].setVelocityX(0);
+
+            curAnim = neutralAnim
+            setSpriteAnim(playerSprites[currentPlayerSpriteType][0], curAnim, false)
         }
 
-        if (cursors.up.isDown && playerSprites[spriteId].body.touching.down) {
-            playerSprites[spriteId].setVelocityY(-330);
-        }
-
-        allPlayers[userId].x = playerSprites[spriteId].x
-        allPlayers[userId].y = playerSprites[spriteId].y
+        allPlayers[userId].x = playerSprites[currentPlayerSpriteType][0].x
+        allPlayers[userId].y = playerSprites[currentPlayerSpriteType][0].y
+        allPlayers[userId].spriteAnim = curAnim
 
         socket.emit('pos', JSON.stringify(allPlayers[userId]))
     }
 
+    function setSpriteAnim(sprite, anim, loop = true) {
+        // convert loop to bool
+        sprite.anims.play(anim, loop)
+    }
+
+    function pacmanAnimInit(ctx) {
+        let namesArray = [
+            'pacmanEast',
+            'pacmanNorth',
+            'pacmanSouth',
+            'pacmanWest',
+        ]
+        let indexArray = 0
+        for (let i = 0; i < 12; i += 3) {
+            ctx.anims.create({
+                frames: ctx.anims.generateFrameNumbers('pacman', {start: i + 1, end: i + 3}),
+                key: namesArray[indexArray],
+                frameRate: 10,
+                repeat: -1
+            });
+            indexArray++
+        }
+
+        // neutral pacman
+        ctx.anims.create({
+            frames: ctx.anims.generateFrameNumbers('pacman', {start: 0, end: 0}),
+            key: 'pacmanDefault',
+            frameRate: 1,
+            repeat: -1
+        });
+
+    }
+
+    function ghostsAnimInit(ctx) {
+        let namesArray = [
+            'ghostRedEast',
+            'ghostRedNorth',
+            'ghostRedSouth',
+            'ghostRedWest',
+            'ghostBlueEast',
+            'ghostBlueNorth',
+            'ghostBlueSouth',
+            'ghostBlueWest',
+            'ghostPinkEast',
+            'ghostPinkNorth',
+            'ghostPinkSouth',
+            'ghostPinkWest',
+            'frigthenedAnim',
+        ]
+        for (let i = 0; i < namesArray.length; i++) {
+            ctx.anims.create({
+                frames: ctx.anims.generateFrameNumbers('ghosts', {start: i, end: i}),
+                key: namesArray[i],
+            })
+        }
+    }
+
+
 </script>
 
-<div id="game-container"></div>
+<div id="thegame"></div>
 
 </body>
 </html>`
