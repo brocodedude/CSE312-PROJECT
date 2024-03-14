@@ -104,7 +104,7 @@ initActiveLobbies().then(() => {
                 return
             }
 
-            console.log(`App is running at ${host}:${port}`)
+            console.log(`App is running at localhost:${port}`)
         })
     }
 ).catch(
