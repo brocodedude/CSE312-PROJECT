@@ -3,6 +3,7 @@ const path = require('path');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 const createError = require('http-errors');
+const bcrypt = require('bcrypt');
 
 // routers
 const indexRouter = require('./routes');
@@ -18,6 +19,9 @@ const isDocker = require('./utils/docker_check')
 
 // core server
 const {server, app} = require('./server')
+
+// database
+const db = require('./db/database');
 
 
 const port = 9000;
@@ -105,15 +109,34 @@ app.post('/account-reg', (req, res) => {
   if (password !== passwordVerify) {
     return res.status(400).json({ message: 'Passwords do not match.' });
   }
-
   // Before adding to the database, ensure the username doesn't already exist.
-
-
-  // TODO: Add your user registration logic here.
-  // This could involve hashing the password and storing the user in a database.
-
-  // Redirect to the homepage.
-  res.redirect('/');
+  db('users')
+    .where({ username })
+    .first()
+    .then((user) => {
+      if (user) {
+        return res.status(400).json({ message: 'Username already exists.' });
+      } else {
+        // Hash the password & store user into database.
+        const saltRounds = 10;
+        bcrypt.hash(password, saltRounds, (err, hash) => {
+          if (err) {
+            return res.status(500).json({ message: 'An error occurred.' });
+          }
+          // Add the user to the database
+          db('users')
+            .insert({ username, password: hash })
+            .then(() => {
+              // Redirect to homepage.
+              res.redirect('/');
+            })
+            .catch((err) => {
+              console.log(err);
+              res.status(500).json({ message: 'An error occurred.' });
+            });
+        });
+      }
+    });
 });
 
 // catch 404 and forward to error handler
