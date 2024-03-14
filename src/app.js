@@ -6,8 +6,8 @@ const createError = require('http-errors');
 
 // routers
 const indexRouter = require('./routes');
-const lobbyRouter = require('./lobby/lobby.controller')
-const gameRouter = require('./game/game.controller')
+const lobbyRouter = require('./lobby/lobby.controller');
+const gameRouter = require('./game/game.controller');
 
 // middlewares
 const authMiddleware = require('./middleware/auth.middleware')
@@ -82,10 +82,39 @@ app.get('/assets/:imageName', (req, res) => {
     res.sendFile(path.join(__dirname, `../public/game/assets/${imageName}`));
 });
 
+// Route for register page.
+app.get('/register', (req, res) => {
+    res.sendFile(path.join(__dirname, '../public/auth/register.html'));
+});
 
+
+// Route for home page.
 app.use('/', indexRouter);
 app.use('/api/lobby', authMiddleware, lobbyRouter)
 app.use('/game', gameRouter)
+
+// Authentication routes.
+app.post('/account-reg', (req, res) => {
+  const { username, password, passwordVerify } = req.body;
+
+  if (!username || !password || !passwordVerify) {
+    return res.status(400).json({ message: 'Username and password are required' });
+  }
+
+  // Ensure that the password & passwordVerify match
+  if (password !== passwordVerify) {
+    return res.status(400).json({ message: 'Passwords do not match.' });
+  }
+
+  // Before adding to the database, ensure the username doesn't already exist.
+
+
+  // TODO: Add your user registration logic here.
+  // This could involve hashing the password and storing the user in a database.
+
+  // Redirect to the homepage.
+  res.redirect('/');
+});
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {

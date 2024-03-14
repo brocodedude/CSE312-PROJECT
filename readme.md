@@ -166,6 +166,3 @@ These are current implemented endpoints
 ```
 
 ## TODO
-
-- Ensure content types show all the time in response headers
-- Add nosniff
