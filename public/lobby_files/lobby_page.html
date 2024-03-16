@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <title>Pacman Lobby Page</title>
     <link rel="stylesheet" type="text/css" href="/lobby_files/lobby_style.css"/>
-    <!-- Script goes here -->
+    <script src="../lobby_files/lobby_scripts.js"></script>
 </head>
 <body>
 
@@ -13,20 +13,29 @@
         <h1>Pacman Lobbies</h1>
     </div>
     <div class="page_info">
-        <h3>Please join or create a game lobby below!</h3>
+        <h4>Please join or create a game lobby below!</h4>
     </div>
     <div class ="logout">
-        <button id="logout_button" onclick="">Logout</button>
+        <button id="logout_button" onclick="logout()">Logout</button>
     </div>
-
 </div>
 
-<div class="middle_page">
 
+<div class="middle_page">
+    <br/>
+    <!-- Replace {{lobbies}} with HTML code for all given lobbies -->
+    <!-- {{lobbies}} -->
 </div>
 
 <div class="bottom_page">
-
+   <div class="creat-lobby-form">
+        <label>
+            Create a Lobby:
+            <br/>
+            <input id="lobby-text-box" type="text" placeholder="Lobby Name">
+        </label>
+       <button id=create-button" onclick="createLobby()">Create</button>
+   </div>
 </div>
 
 </body>

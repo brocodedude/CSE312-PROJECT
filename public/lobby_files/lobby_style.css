@@ -4,5 +4,12 @@ body {
 }
 
 .logout {
-    float:right;
+    margin-left: 50%;
+}
+
+.middle_page{
+    overflow-y: scroll;
+}
+
+.bottom_page{
 }
