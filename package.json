@@ -10,6 +10,7 @@
     "test": "node ./src/utils/html_inserter.js"
   },
   "dependencies": {
+    "bcrypt": "^5.1.1",
     "cookie-parser": "~1.4.4",
     "debug": "~4.3.4",
     "dotenv": "^16.4.5",
