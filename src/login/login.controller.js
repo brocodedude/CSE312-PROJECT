@@ -1,11 +1,18 @@
 const express = require('express');
-const router = express.Router();
-const validator = require('./login.validator')
+const {app} = require("../server");
+const path = require("path");
+const validator = require("./login.validator");
 const {validationResult} = require("express-validator");
-const {verifyDetails, generateAuthToken, updateAuthToken} = require("./login.service");
-const crypto = require('crypto');
+const {generateAuthToken, verifyDetails, updateAuthToken} = require("./login.service");
+const router = express.Router();
 
-router.post('/login', validator, async function (req, res, next) {
+// get the page
+router.get('/', async function (req, res, next) {
+    const fPath = path.resolve('./public/auth/login.html')
+    res.sendFile(fPath)
+})
+
+router.post('/', validator, async function (req, res, next) {
     const errors = validationResult(req);
     // if username or password fields are not passed
     if (!errors.isEmpty()) {
@@ -26,8 +33,15 @@ router.post('/login', validator, async function (req, res, next) {
     // create hash auth token
     const authToken = generateAuthToken()
     try {
-        await updateAuthToken(authToken, result[0]['id'])
-        res.redirect('/lobby')
+        // insert hashed auth token
+        await updateAuthToken(result.id, authToken)
+        // cookie settings
+        const expires = 3 * 3600 * 1000; // 3 hours in milliseconds
+        // path '/' makes cookie accessible from all routes
+        const cookieOptions = {httpOnly: true, maxAge: expires, path: '/'}
+        res.cookie('auth', authToken, cookieOptions)
+
+        res.redirect('/')
     } catch (e) {
         console.log(e)
         res.status(500).send('server error')
@@ -36,3 +50,6 @@ router.post('/login', validator, async function (req, res, next) {
 
     // redirect with auth cookie
 })
+
+
+module.exports = router

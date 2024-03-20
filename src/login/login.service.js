@@ -1,28 +1,33 @@
 const db = require('../db/database');
 const bcrypt = require("bcrypt");
+const crypto = require('crypto')
 
 async function verifyDetails(username, password) {
     return new Promise(
-        (resolve, reject) => {
-            const saltRounds = 10
-            bcrypt.hash(password, saltRounds, async function (err, hash) {
-                if (err) {
-                    console.log(err)
-                    reject(err)
+        async (resolve, reject) => {
+            try {
+                // get user with this hash
+                const result = await db('users').where('username', username).first().returning('*')
+                if (result === undefined) {
+                    reject('User not found')
                 }
-                try {
-                    // get user with this hash
-                    const result = await db('users').where('password', hash).returning('username')
-                    if (result === []) {
-                        reject('User not found')
+
+                // compare hash
+                bcrypt.compare(password, result.password, (err, matched) => {
+                    if (err) {
+                        reject(err)
                     }
 
-                    resolve(result)
-                } catch (e) {
-                    console.log(e)
-                    reject(e)
-                }
-            })
+                    if (matched) {
+                        resolve(result)
+                    } else {
+                        reject('Invalid Username/Password')
+                    }
+                })
+            } catch (e) {
+                console.log(e)
+                reject(e)
+            }
         }
     )
 
@@ -52,12 +57,18 @@ function generateAuthToken(length = 128) {
 }
 
 function updateAuthToken(uid, token) {
-    return db.where('id', uid).update('auth_token', token).from('users').returning('auth_token')
+    return db('users')
+        .where('id', uid)
+        .update({'auth_token': token})
+        .returning('auth_token')
 }
 
 function verifyAuthToken(token) {
     const hashed = hashToken(token)
-    return db.where('auth_token', hashed).from('users').returning(['id','username'],)
+    return db
+        .where('auth_token', hashed)
+        .from('users')
+        .returning(['id', 'username'],)
 }
 
 module.exports = {

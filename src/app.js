@@ -6,9 +6,10 @@ const createError = require('http-errors');
 const bcrypt = require('bcrypt');
 
 // routers
-const indexRouter = require('./routes');
+const indexRouter = require('./index');
 const lobbyRouter = require('./lobby/lobby.controller');
 const gameRouter = require('./game/game.controller');
+const loginRouter = require('./login/login.controller')
 
 // middlewares
 const authMiddleware = require('./login/login.validator')
@@ -94,49 +95,50 @@ app.get('/register', (req, res) => {
 
 // Route for home page.
 app.use('/', indexRouter);
+app.use('/login', loginRouter)
 app.use('/api/lobby', authMiddleware, lobbyRouter)
 app.use('/game', gameRouter)
 
-// Authentication routes.
+// Authentication index.
 app.post('/account-reg', (req, res) => {
-  const { username, password, passwordVerify } = req.body;
+    const {username, password, passwordVerify} = req.body;
 
-  if (!username || !password || !passwordVerify) {
-    return res.status(400).json({ message: 'Username and password are required' });
-  }
+    if (!username || !password || !passwordVerify) {
+        return res.status(400).json({message: 'Username and password are required'});
+    }
 
-  // Ensure that the password & passwordVerify match
-  if (password !== passwordVerify) {
-    return res.status(400).json({ message: 'Passwords do not match.' });
-  }
-  // Before adding to the database, ensure the username doesn't already exist.
-  db('users')
-    .where({ username })
-    .first()
-    .then((user) => {
-      if (user) {
-        return res.status(400).json({ message: 'Username already exists.' });
-      } else {
-        // Hash the password & store user into database.
-        const saltRounds = 10;
-        bcrypt.hash(password, saltRounds, (err, hash) => {
-          if (err) {
-            return res.status(500).json({ message: 'An error occurred.' });
-          }
-          // Add the user to the database
-          db('users')
-            .insert({ username, password: hash })
-            .then(() => {
-              // Redirect to homepage.
-              res.redirect('/');
-            })
-            .catch((err) => {
-              console.log(err);
-              res.status(500).json({ message: 'An error occurred.' });
-            });
+    // Ensure that the password & passwordVerify match
+    if (password !== passwordVerify) {
+        return res.status(400).json({message: 'Passwords do not match.'});
+    }
+    // Before adding to the database, ensure the username doesn't already exist.
+    db('users')
+        .where({username})
+        .first()
+        .then((user) => {
+            if (user) {
+                return res.status(400).json({message: 'Username already exists.'});
+            } else {
+                // Hash the password & store user into database.
+                const saltRounds = 10;
+                bcrypt.hash(password, saltRounds, (err, hash) => {
+                    if (err) {
+                        return res.status(500).json({message: 'An error occurred.'});
+                    }
+                    // Add the user to the database
+                    db('users')
+                        .insert({username, password: hash})
+                        .then(() => {
+                            // Redirect to homepage.
+                            res.redirect('/');
+                        })
+                        .catch((err) => {
+                            console.log(err);
+                            res.status(500).json({message: 'An error occurred.'});
+                        });
+                });
+            }
         });
-      }
-    });
 });
 
 // catch 404 and forward to error handler
