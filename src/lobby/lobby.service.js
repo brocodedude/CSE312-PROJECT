@@ -15,6 +15,7 @@ function getLobbyId(id) {
     return db.select('lobby_id').where({
         'id': id
     }).from('lobbies')
+        .first()
 }
 
 

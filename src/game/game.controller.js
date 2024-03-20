@@ -29,11 +29,11 @@ router.get('/play', async (req, res, next) => {
 
     try {
         const tmp = await getLobbyId(lobbyId)
-        if (tmp.length === 0) {
+        if (!tmp) {
             console.log('Failed to get lobbyId, Probably incorrect lobbyId')
             res.status(403).send('Invalid request. Lobby is invalid')
         }
-        const lobbyUUId = tmp[0]['lobby_id']
+        const lobbyUUId = tmp['lobby_id']
 
 
         const result = activeLobbies[lobbyUUId].join(playerTmpUUid)
