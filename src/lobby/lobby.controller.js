@@ -45,14 +45,14 @@ router.post('/', validator, async function (req, res, next) {
 
     // get the fields
     const {
-        uid, lobby_name
+        lobby_name
     } = req.body
 
     // generate new id
     const lobbyId = uuidv4();
 
     try {
-        const result = await insert(uid, lobby_name, lobbyId)
+        const result = await insert(req.authDetails.id, lobby_name, lobbyId)
         // add to active lobbies
         activeLobbies[lobbyId] = new LobbyModel()
         res.status(201).send(JSON.stringify(result[0]))
@@ -79,7 +79,7 @@ router.patch('/:id', async function (req, res, next) {
 
     try {
         // encode to escape any characters
-        const result = await update(id, he.encode(lobbyName))
+        const result = await update(req.authDetails.id, id, he.encode(lobbyName))
         res.status(200).send(JSON.stringify(result[0]))
     } catch (e) {
         console.error(e)
@@ -94,7 +94,9 @@ router.delete('/:id', async function (req, res, next) {
     }
 
     try {
-        const result = await _delete(id)
+        // send the id of the lobby to delete and the id of user who requested it
+        // this will make sure other users cannot delete other players lobbies
+        const result = await _delete(id, req.authDetails.id)
         // remove from active lobbies
         delete activeLobbies[id]
         res.status(200).send(JSON.stringify(result))

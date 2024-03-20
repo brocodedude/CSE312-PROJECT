@@ -29,21 +29,24 @@ async function insert(uid, lobby_name, lobbyId) {
 
 /**
  * @param {string}id
+ * @param {string} uid
  * @return {Knex.QueryBuilder<TRecord, TResult>}
  */
-function _delete(id) {
+function _delete(id, uid) {
     return db.delete(['uid', 'id', 'lobby_name']).where({
-        'id': id
+        'id': id,
+        'uid': uid,
     }).from('lobbies')
 }
 
 /**
  *
+ * @param {string} uid
  * @param {string} id
  * @param {string} lobbyName
  */
-function update(id, lobbyName) {
-    return db.where('id', id).update({'lobby_name': lobbyName}).from('lobbies').returning('id')
+function update(uid, id, lobbyName) {
+    return db.where('id', id).where('uid', uid).update({'lobby_name': lobbyName}).from('lobbies').returning('id')
 }
 
 module.exports = {
