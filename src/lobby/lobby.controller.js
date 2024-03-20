@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const {list, insert, getLobbyId, _delete, update} = require('./lobby.service')
-const validator = require('../middleware/lobby_fields.middleware')
+const validator = require('./lobby.middleware')
 const {v4: uuidv4} = require('uuid');
 const {validationResult} = require("express-validator");
 const he = require('he');

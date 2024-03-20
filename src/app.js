@@ -11,9 +11,6 @@ const lobbyRouter = require('./lobby/lobby.controller');
 const gameRouter = require('./game/game.controller');
 const loginRouter = require('./login/login.controller')
 
-// middlewares
-const authMiddleware = require('./login/login.validator')
-
 // utils
 const {initActiveLobbies} = require('./game/game.service')
 const isDocker = require('./utils/docker_check')
@@ -23,7 +20,7 @@ const {server, app} = require('./server')
 
 // database
 const db = require('./db/database');
-const authTokenValidator = require("./middleware/auth_token_verifier");
+const authTokenValidator = require("./middleware/auth_token_validator");
 
 
 const port = 9000;
