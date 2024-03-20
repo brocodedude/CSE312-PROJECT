@@ -13,6 +13,7 @@ body {
     background-color: aliceblue;
     height: 400px;
     width: fit-content;
+    border-style: solid;
 }
 
 .lobby-box{
