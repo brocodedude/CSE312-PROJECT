@@ -4,7 +4,7 @@
  * @param {import('express').Response} res - The Express response object
  * @param {import('express').NextFunction} next - The next middleware function
  */
-function authMiddleWare(req, res, next) {
+function loginValidator(req, res, next) {
     // check auth here
     const authHeader = true
     if (!authHeader) {
@@ -15,4 +15,4 @@ function authMiddleWare(req, res, next) {
     next();
 }
 
-module.exports = authMiddleWare
+module.exports = loginValidator

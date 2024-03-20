@@ -1,6 +1,5 @@
 const db = require('../db/database');
 
-
 function list() {
     return db.select('id', 'uid', 'lobby_name').from('lobbies')
 }

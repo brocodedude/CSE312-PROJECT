@@ -11,7 +11,7 @@ const lobbyRouter = require('./lobby/lobby.controller');
 const gameRouter = require('./game/game.controller');
 
 // middlewares
-const authMiddleware = require('./middleware/auth.middleware')
+const authMiddleware = require('./login/login.validator')
 
 // utils
 const {initActiveLobbies} = require('./game/game.service')
