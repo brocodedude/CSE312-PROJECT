@@ -6,12 +6,10 @@ const createError = require('http-errors');
 const bcrypt = require('bcrypt');
 
 // routers
-const indexRouter = require('./routes');
+const indexRouter = require('./index');
 const lobbyRouter = require('./lobby/lobby.controller');
 const gameRouter = require('./game/game.controller');
-
-// middlewares
-const authMiddleware = require('./middleware/auth.middleware')
+const loginRouter = require('./login/login.controller')
 
 // utils
 const {initActiveLobbies} = require('./game/game.service')
@@ -22,6 +20,7 @@ const {server, app} = require('./server')
 
 // database
 const db = require('./db/database');
+const authTokenValidator = require("./middleware/auth_token_validator");
 
 
 const port = 9000;
@@ -94,49 +93,51 @@ app.get('/register', (req, res) => {
 
 // Route for home page.
 app.use('/', indexRouter);
-app.use('/api/lobby', authMiddleware, lobbyRouter)
-app.use('/game', gameRouter)
+app.use('/login', loginRouter)
+// validator to verify user, only logged-in users can access these paths
+app.use('/api/lobby', authTokenValidator, lobbyRouter)
+app.use('/game', authTokenValidator, gameRouter)
 
-// Authentication routes.
+// Authentication index.
 app.post('/account-reg', (req, res) => {
-  const { username, password, passwordVerify } = req.body;
+    const {username, password, passwordVerify} = req.body;
 
-  if (!username || !password || !passwordVerify) {
-    return res.status(400).json({ message: 'Username and password are required' });
-  }
+    if (!username || !password || !passwordVerify) {
+        return res.status(400).json({message: 'Username and password are required'});
+    }
 
-  // Ensure that the password & passwordVerify match
-  if (password !== passwordVerify) {
-    return res.status(400).json({ message: 'Passwords do not match.' });
-  }
-  // Before adding to the database, ensure the username doesn't already exist.
-  db('users')
-    .where({ username })
-    .first()
-    .then((user) => {
-      if (user) {
-        return res.status(400).json({ message: 'Username already exists.' });
-      } else {
-        // Hash the password & store user into database.
-        const saltRounds = 10;
-        bcrypt.hash(password, saltRounds, (err, hash) => {
-          if (err) {
-            return res.status(500).json({ message: 'An error occurred.' });
-          }
-          // Add the user to the database
-          db('users')
-            .insert({ username, password: hash })
-            .then(() => {
-              // Redirect to homepage.
-              res.redirect('/');
-            })
-            .catch((err) => {
-              console.log(err);
-              res.status(500).json({ message: 'An error occurred.' });
-            });
+    // Ensure that the password & passwordVerify match
+    if (password !== passwordVerify) {
+        return res.status(400).json({message: 'Passwords do not match.'});
+    }
+    // Before adding to the database, ensure the username doesn't already exist.
+    db('users')
+        .where({username})
+        .first()
+        .then((user) => {
+            if (user) {
+                return res.status(400).json({message: 'Username already exists.'});
+            } else {
+                // Hash the password & store user into database.
+                const saltRounds = 10;
+                bcrypt.hash(password, saltRounds, (err, hash) => {
+                    if (err) {
+                        return res.status(500).json({message: 'An error occurred.'});
+                    }
+                    // Add the user to the database
+                    db('users')
+                        .insert({username, password: hash})
+                        .then(() => {
+                            // Redirect to homepage.
+                            res.redirect('/');
+                        })
+                        .catch((err) => {
+                            console.log(err);
+                            res.status(500).json({message: 'An error occurred.'});
+                        });
+                });
+            }
         });
-      }
-    });
 });
 
 // catch 404 and forward to error handler

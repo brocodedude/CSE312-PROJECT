@@ -11,7 +11,7 @@ async function insertValuesInHTML(filePath, lobbyId, playerTmpId) {
     let file = await readHtmlFile(filePath)
     file = file.replace('{{lobby}}', lobbyId);
     file = file.replace('{{user}}', playerTmpId);
-    return Buffer.from(file,'utf-8')
+    return Buffer.from(file, 'utf-8')
 }
 
 function readHtmlFile(filePath) {
@@ -26,4 +26,4 @@ function readHtmlFile(filePath) {
     });
 }
 
-module.exports = insertValuesInHTML
+module.exports = {insertValuesInHTML, readHtmlFile}
