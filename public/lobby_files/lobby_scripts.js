@@ -9,6 +9,7 @@ async function fetchLobbies() {
         // Extracting names and IDs from lobbies
         return lobbies.map(lobby => ({
             id: lobby.id,
+            uid: lobby.uid,
             name: lobby.lobby_name
         }));
 

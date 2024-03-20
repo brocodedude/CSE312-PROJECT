@@ -19,13 +19,18 @@ body {
 .lobby-box{
     background-color: silver;
     border-style: solid;
-    padding: 20px;
+    padding: 10px;
     width: 250px;
     height: 100px;
 }
 
+
 table{
     border-spacing: 20px;
+}
+
+.lobby-buttons{
+    display: inline-block;
 }
 
 .bottom_page{

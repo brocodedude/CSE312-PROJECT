@@ -24,16 +24,16 @@
     <br/>
     <script>
         //REMOVE
-        async function fetchLobbies() {
-            const testData = [
-                { id: 1, name: "Test Lobby 1" },
-                { id: 2, name: "Test Lobby 2" },
-                { id: 3, name: "Test Lobby 3" },
-                { id: 4, name: "Test Lobby 4" },
-                { id: 5, name: "Test Lobby 5" }
-            ];
-            return testData;
-        }
+        //async function fetchLobbies() {
+          //  const testData = [
+            //    { id: 1, name: "Test Lobby 1" },
+            //    { id: 2, name: "Test Lobby 2" },
+            //    { id: 3, name: "Test Lobby 3" },
+            //    { id: 4, name: "Test Lobby 4" },
+            //    { id: 5, name: "Test Lobby 5" }
+            //];
+            //return testData;
+        //}
         //MOCK LOBBIES OVER
 
         async function fetchLobbiesAndRender() {
@@ -66,6 +66,8 @@
                                     <a href="">
                                         <button>Join</button>
                                     </a>
+                                    <button id="delete" onclick="deleteLobby(${lobby.uid})">Delete</button>
+                                    <button id="edit" onclick="">Edit</button>
                                 </div>
                             </div>
                             `;
