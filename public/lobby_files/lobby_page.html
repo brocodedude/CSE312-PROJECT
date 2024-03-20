@@ -20,15 +20,71 @@
     </div>
 </div>
 
-
 <div class="middle_page">
     <br/>
-    <!-- Replace {{lobbies}} with HTML code for all given lobbies -->
-    <!-- {{lobbies}} -->
+    <script>
+        //REMOVE
+        async function fetchLobbies() {
+            const testData = [
+                { id: 1, name: "Test Lobby 1" },
+                { id: 2, name: "Test Lobby 2" },
+                { id: 3, name: "Test Lobby 3" },
+                { id: 4, name: "Test Lobby 4" },
+                { id: 5, name: "Test Lobby 5" }
+            ];
+            return testData;
+        }
+        //MOCK LOBBIES OVER
+
+        async function fetchLobbiesAndRender() {
+            try {
+                //CONSTANTS INITIALIZED
+                const lobbies = await fetchLobbies();
+                const lobbyTable = document.createElement('table');
+                const lobbyListContainer = document.querySelector('.middle_page');
+                const numRows = Math.ceil(lobbies.length / 2)
+                lobbyListContainer.innerHTML = '';
+                //NOW WE MAKE THE TABLE
+                for (let i = 0; i < numRows; i++) {
+                    const row = lobbyTable.insertRow(); // Insert a new row
+                    for (let j = 0; j < 2; j++) {
+                        const index = i * 2 + j;
+                        if (index < lobbies.length) {
+                            const cell = row.insertCell(); // Insert a new cell in the row
+                            const lobby = lobbies[index];
+                            cell.innerHTML = `
+                            <div class="lobby-box">
+                                <div class="lobby-name"
+                                    <p>Lobby Name: ${lobby.name}</p>
+                                </div>
+                                <hr>
+                                <div class="lobby-count">
+                                    <p>Players: ?/4</p>
+                                </div>
+                                <hr>
+                                <div class="lobby-buttons"
+                                    <a href="">
+                                        <button>Join</button>
+                                    </a>
+                                </div>
+                            </div>
+                            `;
+                        }
+                    }
+                }
+                lobbyListContainer.appendChild(lobbyTable)
+            } catch (error) {
+                console.error('Error fetching and rendering lobbies:', error);
+            }
+        }
+        // Call the function to fetch and render lobbies when the page loads
+        window.onload = fetchLobbiesAndRender;
+    </script>
 </div>
 
 <div class="bottom_page">
-   <div class="creat-lobby-form">
+    <br/>
+   <div class="create-lobby-form">
         <label>
             Create a Lobby:
             <br/>
@@ -37,6 +93,5 @@
        <button id=create-button" onclick="createLobby()">Create</button>
    </div>
 </div>
-
 </body>
 </html>
