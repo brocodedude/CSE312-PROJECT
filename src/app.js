@@ -21,6 +21,7 @@ const {server, app} = require('./server')
 // database
 const db = require('./db/database');
 const authTokenValidator = require("./middleware/auth_token_validator");
+const {updateAuthToken, verifyAuthToken} = require("./login/login.service");
 
 
 const port = 9000;
@@ -88,6 +89,20 @@ app.get('/assets/:imageName', (req, res) => {
 // Route for register page.
 app.get('/register', (req, res) => {
     res.sendFile(path.join(__dirname, '../public/auth/register.html'));
+});
+
+// logout
+app.get('/logout', async (req, res) => {
+    if (req.cookies.auth) {
+        const result = await verifyAuthToken(req.cookies.auth)
+        if (result) {
+            await updateAuthToken(result.id, '')
+            // set null auth token
+        }
+    }
+    // remove cookie
+    res.clearCookie('auth')
+    res.redirect('/login');
 });
 
 

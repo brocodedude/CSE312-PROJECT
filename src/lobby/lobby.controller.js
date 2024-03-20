@@ -18,6 +18,31 @@ router.get('/', async function (req, res, next) {
     }
 });
 
+// gets current players joined
+router.get('/:id/players', async function (req, res, next) {
+    const id = req.params.id;
+
+    if (isNaN(id)) {
+        res.status(400).send('Bad Request. Make sure the url is properly formated')
+    }
+    try {
+        // maps max players to connected players
+        let data = {4: '0'}
+        const result = await getLobbyId(id)
+        if (result) {
+            const lobby = activeLobbies[result['lobby_id']]
+            if (lobby) {
+                data['4'] = Object.keys(lobby.connectedPlayers).length
+            }
+        }
+        res.status(200).send(JSON.stringify(data))
+    } catch (e) {
+        console.error(e)
+        res.status(400).send('Bad request. Make sure you are sending the correct data with correct values')
+    }
+});
+
+
 router.get('/:id', async function (req, res, next) {
     const id = req.params.id;
 

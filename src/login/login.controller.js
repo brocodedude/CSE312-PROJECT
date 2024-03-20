@@ -21,9 +21,9 @@ router.get('/', async function (req, res, _) {
 router.post('/', validator, async function (req, res, _) {
     const validation = validationResult(req);
 
-    if (validation.errors.length !== 0) {
+    if (validation.array().length !== 0) {
         let finalMsg = ''
-        for (const msg of validation.errors) {
+        for (const msg of validation.array()) {
             finalMsg += `Field: ${msg['path']} has error: ${msg['msg']}`
         }
         res.status(400).send(finalMsg);

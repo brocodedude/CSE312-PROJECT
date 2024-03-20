@@ -1,7 +1,9 @@
 const db = require('../db/database');
 
 function list() {
-    return db.select('id', 'uid', 'lobby_name').from('lobbies')
+    return db
+        .select('lobbies.id', 'lobbies.lobby_name', 'lobbies.created_at', 'users.username').from('lobbies')
+        .join('users', 'lobbies.uid', 'users.id');
 }
 
 /**
@@ -13,6 +15,7 @@ function getLobbyId(id) {
     return db.select('lobby_id').where({
         'id': id
     }).from('lobbies')
+        .first()
 }
 
 
