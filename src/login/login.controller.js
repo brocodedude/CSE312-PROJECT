@@ -1,33 +1,44 @@
+// node libs
 const express = require('express');
-const {app} = require("../server");
 const path = require("path");
-const validator = require("./login.validator");
 const {validationResult} = require("express-validator");
-const {generateAuthToken, verifyDetails, updateAuthToken} = require("./login.service");
 const router = express.Router();
 
-// get the page
-router.get('/', async function (req, res, next) {
-    const fPath = path.resolve('./public/auth/login.html')
+// utils
+const {generateAuthToken, verifyDetails, updateAuthToken} = require("./login.service");
+const {readHtmlFile} = require('../utils/html_inserter')
+
+// consts
+const loginHtmlPath = './public/auth/login.html'
+
+// get the login page
+router.get('/', async function (req, res, _) {
+    const fPath = path.resolve(loginHtmlPath)
     res.sendFile(fPath)
 })
 
-router.post('/', validator, async function (req, res, next) {
-    const errors = validationResult(req);
-    // if username or password fields are not passed
-    if (!errors.isEmpty()) {
-        return res.status(400).json({'Invalid request': errors.array()});
-    }
+// handle login form post request
+router.post('/', async function (req, res, _) {
 
     const {
         username, password
     } = req.body
 
+    // if username or password fields are not passed
+    if (!username || !password) {
+        res.status(400)
+        res.statusMessage = 'Invalid request'
+        res.send()
+        return
+    }
     let result
     try {
         result = await verifyDetails(username, password)
     } catch (e) {
-        res.status(400).send('Invalid credentials')
+        res.status(400)
+        res.statusMessage = 'Invalid Username or Password'
+        res.send()
+        return
     }
 
     // create hash auth token
@@ -46,9 +57,6 @@ router.post('/', validator, async function (req, res, next) {
         console.log(e)
         res.status(500).send('server error')
     }
-
-
-    // redirect with auth cookie
 })
 
 

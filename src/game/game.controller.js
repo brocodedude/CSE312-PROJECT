@@ -4,7 +4,7 @@ const {v4: uuidv4} = require("uuid");
 
 // servies
 const {activeLobbies, joinLobby} = require('./game.service')
-const insertValuesInHTML = require('../utils/html_inserter')
+const {insertValuesInHTML} = require('../utils/html_inserter')
 const {getLobbyId} = require("../lobby/lobby.service");
 const {handlePosMsg, handlePelletMsg, handleJoinMsg, handleDisconnect} = require('./game.websocket')
 
