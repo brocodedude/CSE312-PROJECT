@@ -39,9 +39,10 @@ async function verifyDetails(username, password) {
  * @return {string}
  */
 function hashToken(token) {
-    const hash = crypto.createHash('sha256');
-    hash.update(token);
-    return hash.digest('hex');
+    return crypto
+        .createHash('sha256')
+        .update(token)
+        .digest('hex');
 }
 
 function generateAuthToken(length = 128) {
@@ -57,9 +58,10 @@ function generateAuthToken(length = 128) {
 }
 
 function updateAuthToken(uid, token) {
+    const hashed = hashToken(token)
     return db('users')
         .where('id', uid)
-        .update({'auth_token': token})
+        .update({'auth_token': hashed})
         .returning('auth_token')
 }
 
@@ -68,7 +70,8 @@ function verifyAuthToken(token) {
     return db
         .where('auth_token', hashed)
         .from('users')
-        .returning(['id', 'username'],)
+        .returning(['id', 'username'])
+        .first()
 }
 
 module.exports = {

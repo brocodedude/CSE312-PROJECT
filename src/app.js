@@ -23,6 +23,7 @@ const {server, app} = require('./server')
 
 // database
 const db = require('./db/database');
+const authTokenValidator = require("./middleware/auth_token_verifier");
 
 
 const port = 9000;
@@ -96,8 +97,9 @@ app.get('/register', (req, res) => {
 // Route for home page.
 app.use('/', indexRouter);
 app.use('/login', loginRouter)
-app.use('/api/lobby', authMiddleware, lobbyRouter)
-app.use('/game', gameRouter)
+// validator to verify user, only logged-in users can access these paths
+app.use('/api/lobby', authTokenValidator, lobbyRouter)
+app.use('/game', authTokenValidator, gameRouter)
 
 // Authentication index.
 app.post('/account-reg', (req, res) => {

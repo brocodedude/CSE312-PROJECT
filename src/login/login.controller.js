@@ -46,12 +46,12 @@ router.post('/', async function (req, res, _) {
     try {
         // insert hashed auth token
         await updateAuthToken(result.id, authToken)
+        console.log('Auth token updated')
         // cookie settings
         const expires = 3 * 3600 * 1000; // 3 hours in milliseconds
         // path '/' makes cookie accessible from all routes
         const cookieOptions = {httpOnly: true, maxAge: expires, path: '/'}
         res.cookie('auth', authToken, cookieOptions)
-
         res.redirect('/')
     } catch (e) {
         console.log(e)
