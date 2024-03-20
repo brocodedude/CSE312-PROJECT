@@ -1,14 +1,30 @@
 body {
-    background-color: grey;
-    color: grey;
+    background-color: lightyellow;
 }
 
 .logout {
-    margin-left: 50%;
+    position: relative;
+    top: -30px;
+    left: 600px;
 }
 
 .middle_page{
     overflow-y: scroll;
+    background-color: aliceblue;
+    height: 400px;
+    width: fit-content;
+}
+
+.lobby-box{
+    background-color: silver;
+    border-style: solid;
+    padding: 20px;
+    width: 250px;
+    height: 100px;
+}
+
+table{
+    border-spacing: 20px;
 }
 
 .bottom_page{
