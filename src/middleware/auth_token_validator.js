@@ -15,7 +15,7 @@ async function authTokenValidator(req, res, next) {
     const result = await verifyAuthToken(req.cookies.auth)
 
     if (!result) {
-        res.status(403).send('Unauthorized');
+        res.redirect('/login')
         return
     }
     // add details so that next function can access details if needed
