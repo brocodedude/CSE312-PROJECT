@@ -6,13 +6,14 @@ const createError = require('http-errors');
 const bcrypt = require('bcrypt');
 
 // routers
-const indexRouter = require('./index');
-const lobbyRouter = require('./lobby/lobby.controller');
-const gameRouter = require('./game/game.controller');
-const loginRouter = require('./login/login.controller')
+const indexRouter = require('./routes/index');
+const gameRouter = require('./routes/game/game.controller');
+const loginRouter = require('./routes/login/login.controller')
+const lobbyRouter = require('./routes/lobby/lobby.controller')
+const lobbyApiRouter = require('./routes/lobby_api/lobbyApi.controller');
 
 // utils
-const {initActiveLobbies} = require('./game/game.service')
+const {initActiveLobbies} = require('./routes/game/game.service')
 const isDocker = require('./utils/docker_check')
 
 // core server
@@ -21,7 +22,7 @@ const {server, app} = require('./server')
 // database
 const db = require('./db/database');
 const authTokenValidator = require("./middleware/auth_token_validator");
-const {updateAuthToken, verifyAuthToken} = require("./login/login.service");
+const {updateAuthToken, verifyAuthToken} = require("./routes/login/login.service");
 
 
 const port = 9000;
@@ -60,18 +61,6 @@ app.use((req, res, next) => {
 
 app.use(express.static(path.join(__dirname, '../public')));
 
-// Route for CSS.
-app.get('/css/styles.css', (req, res) => {
-    // res.setHeader('Content-Type', 'text/css');
-    res.sendFile(path.join(__dirname, '../public/css/styles.css'));
-});
-
-// Route for JS.
-app.get('/js/index.js', (req, res) => {
-    // res.setHeader('Content-Type', 'text/javascript');
-    res.sendFile(path.join(__dirname, '../public/script.js'));
-});
-
 // Route for IMAGES.
 app.get('/images/:imageName', (req, res) => {
     const imageName = req.params.imageName;
@@ -107,11 +96,14 @@ app.get('/logout', async (req, res) => {
 
 
 // Route for home page.
-app.use('/', indexRouter);
+app.get('/', async (req, res, next) => {
+    res.redirect('/lobby')
+})
 app.use('/login', loginRouter)
 // validator to verify user, only logged-in users can access these paths
-app.use('/api/lobby', authTokenValidator, lobbyRouter)
+app.use('/lobby', authTokenValidator, lobbyRouter)
 app.use('/game', authTokenValidator, gameRouter)
+app.use('/api/lobby', authTokenValidator, lobbyApiRouter)
 
 // Authentication index.
 app.post('/account-reg', (req, res) => {

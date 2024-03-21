@@ -38,11 +38,13 @@ const createLobby = () => {
         })
         .catch(error => {
             console.error('Error creating lobby', error);
-        })
+        }).finally(() => {
+        location.reload()
+    })
 }
 
 const deleteLobby = (lobbyID) => {
-    fetch(`/api/lobby/${lobbyId}`, {
+    fetch(`/api/lobby/${lobbyID}`, {
         method: 'DELETE',
     })
         .then(response => {
@@ -53,5 +55,29 @@ const deleteLobby = (lobbyID) => {
         })
         .catch(error => {
             console.error('Error deleting lobby:', error);
-        });
+        }).finally(() => {
+        location.reload()
+    });
+}
+
+function goToGame(lobbyUrl) {
+    window.location = lobbyUrl
+}
+
+function logout() {
+    fetch('/logout', {
+        method: 'GET',
+    }).then(response => {
+        if (response.redirected) {
+            console.log('Redirecting to ' + response.url)
+            window.location.href = response.url;
+        } else {
+            if (response.statusText) {
+                alert('Error ' + response.statusText)
+            }
+        }
+    }).catch(error => {
+        console.error('There was a problem sending data to server:', error);
+    });
+
 }

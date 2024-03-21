@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <title>Pacman Lobby Page</title>
-    <link rel="stylesheet" type="text/css" href="/lobby_files/lobby_style.css"/>
-    <script src="../lobby_files/lobby_scripts.js"></script>
-    <script src="../js/index.js"></script>
+    <link rel="stylesheet" type="text/css" href="/lobby/lobby_style.css"/>
+    <script src="/lobby/lobby_scripts.js"></script>
 </head>
 <body>
 
@@ -14,9 +13,9 @@
         <h1>Pacman Lobbies</h1>
     </div>
     <div class="page_info">
-        <h4>Please join or create a game lobby below!</h4>
+        <h4>Please 1 or create a game lobby below!</h4>
     </div>
-    <div class ="logout">
+    <div class="logout">
         <button id="logout_button" onclick="logout()">Logout</button>
     </div>
 </div>
@@ -58,10 +57,9 @@
                                 </div>
                                 <hr>
                                 <div class="lobby-buttons"
-                                    <a href="">
-                                        <button>Join</button>
-                                    </a>
-                                    <button id="delete" onclick="deleteLobby(${lobby.uid})">Delete</button>
+                                    <button id='join' onclick="goToGame('/game/play?lobby=${lobby.id}')">Join</button>
+
+                                    <button id="delete" onclick="deleteLobby(${lobby.id})">Delete</button>
                                 </div>
                             </div>
                             `;
@@ -73,6 +71,7 @@
                 console.error('Error fetching and rendering lobbies:', error);
             }
         }
+
         // Call the function to fetch and render lobbies when the page loads
         window.onload = fetchLobbiesAndRender;
     </script>
@@ -80,14 +79,14 @@
 
 <div class="bottom_page">
     <br/>
-   <div class="create-lobby-form">
+    <div class="create-lobby-form">
         <label>
             Create a Lobby:
             <br/>
             <input id="lobby-text-box" type="text" placeholder="Lobby Name">
         </label>
-       <button id=create-button" onclick="createLobby();location.reload()">Create</button>
-   </div>
+        <button id=create-button" onclick="createLobby()">Create</button>
+    </div>
 </div>
 </body>
 </html>

@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const {list, insert, getLobbyId, _delete, update} = require('./lobby.service')
-const validator = require('./lobby.middleware')
+const {list, insert, getLobbyId, _delete, update} = require('./lobbyApi.service')
+const validator = require('./lobbyApi.middleware')
 const {v4: uuidv4} = require('uuid');
 const {validationResult} = require("express-validator");
 const he = require('he');
@@ -60,7 +60,7 @@ router.get('/:id', async function (req, res, next) {
 });
 
 
-// create a new lobby
+// create a new lobby_api
 router.post('/', validator, async function (req, res, next) {
     const errors = validationResult(req);
 
@@ -119,7 +119,7 @@ router.delete('/:id', async function (req, res, next) {
     }
 
     try {
-        // send the id of the lobby to delete and the id of user who requested it
+        // send the id of the lobby_api to delete and the id of user who requested it
         // this will make sure other users cannot delete other players lobbies
         const result = await _delete(id, req.authDetails.id)
         // remove from active lobbies

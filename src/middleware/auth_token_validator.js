@@ -1,4 +1,4 @@
-const {verifyAuthToken} = require('../login/login.service')
+const {verifyAuthToken} = require('../routes/login/login.service')
 
 /**
  * checks if a user auth token is authorized
@@ -9,7 +9,7 @@ const {verifyAuthToken} = require('../login/login.service')
 async function authTokenValidator(req, res, next) {
     // check auth here
     if (!req.cookies.auth) {
-        res.status(403).send('Unauthorized');
+        res.redirect('/login')
         return
     }
     const result = await verifyAuthToken(req.cookies.auth)

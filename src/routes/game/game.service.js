@@ -1,19 +1,19 @@
 const express = require('express');
-const {getLobbyId} = require('../lobby/lobby.service')
-const db = require("../db/database");
+const {getLobbyId} = require('../lobby_api/lobbyApi.service')
+const db = require("../../db/database");
 const lobbyModel = require('./lobby.model')
 const {v4: uuidv4} = require('uuid');
-const {io} = require("../server");
+const {io} = require("../../server");
 
 const router = express.Router();
 
-// lobby id to LobbyModel
+// lobby_api id to LobbyModel
 // on new player check id
-// if lobby exists then do something
+// if lobby_api exists then do something
 // or do something else
 /**
  * @type {Object.<string, LobbyModel>} ActiveLobbies
- * Represents a hashmap where keys are lobby ids and values are LobbyModels.
+ * Represents a hashmap where keys are lobby_api ids and values are LobbyModels.
  */
 let activeLobbies = {}
 

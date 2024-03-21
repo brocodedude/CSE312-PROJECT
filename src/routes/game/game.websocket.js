@@ -1,4 +1,4 @@
-const {io} = require("../server");
+const {io} = require("../../server");
 const {activeLobbies, socketIds, removeSocketId, setSocketId} = require('./game.service')
 
 
@@ -16,7 +16,7 @@ function handleJoinMsg(msg, socket) {
     }
 
     // TODO check if playerId is valid
-    // check lobby id
+    // check lobby_api id
     const lobby = activeLobbies[lobbyId]
 
     if (lobby === undefined) {
@@ -43,7 +43,7 @@ function handleJoinMsg(msg, socket) {
     // tell everyone including client that new player joined
     io.emit('set', JSON.stringify(playerData))
 
-    // tell new client current players in lobby after client has joined
+    // tell new client current players in lobby_api after client has joined
     for (const player in lobby.connectedPlayers) {
         const currPlayer = lobby.connectedPlayers[player]
         if (currPlayer.playerid !== userId) {
@@ -68,11 +68,11 @@ function handleDisconnect(disconnectReason, socket) {
     console.log(`removing user ${userUUID} from lobby ${lobbyUUID}`)
     console.log(disconnectReason)
 
-    // get player from lobby
+    // get player from lobby_api
     const lobby = activeLobbies[lobbyUUID]
 
     if (lobby === undefined) {
-        console.log('invalid lobby')
+        console.log('invalid lobby_api')
         // do nothing
         return
     }
@@ -85,7 +85,7 @@ function handleDisconnect(disconnectReason, socket) {
         return
     }
 
-    // remove player from lobby
+    // remove player from lobby_api
     lobby.leave(userUUID)
 
     // tell connected clients about user leaving
