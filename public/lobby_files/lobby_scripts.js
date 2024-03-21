@@ -4,14 +4,9 @@ async function fetchLobbies() {
         if (!response.ok) {
             throw new Error('Failed to fetch lobbies');
         }
-        const lobbies = await response.json();
+        return await response.json();
 
         // Extracting names and IDs from lobbies
-        return lobbies.map(lobby => ({
-            id: lobby.id,
-            uid: lobby.uid,
-            name: lobby.lobby_name
-        }));
 
     } catch (error) {
         console.error('Error fetching lobbies:', error);
@@ -22,10 +17,10 @@ async function fetchLobbies() {
 const createLobby = () => {
     //This Function creates the lobby when a name is inserted
     //and the user presses the create button
-    const lobby_name = document.getElementById("lobby-text-box").value;
+    const name = document.getElementById("lobby-text-box").value;
     const lobbyData = {
-        lobby_name: lobby_name,
-        uid: "1"    //REPLACE WITH UID OF USER WHO CREATED IT
+        lobby_name: name,
+        uid: 1
     }
 
     fetch('/api/lobby', {
@@ -44,17 +39,6 @@ const createLobby = () => {
         .catch(error => {
             console.error('Error creating lobby', error);
         })
-}
-
-const logout = () => {
-    //This function is run when logout button is pressed
-    const del ={method: "POST"}
-    const delReq = new Request("../logout")
-    fetch(delReq, del).then((response) => {})
-}
-
-const editLobby = () => {
-
 }
 
 const deleteLobby = (lobbyID) => {

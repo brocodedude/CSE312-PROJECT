@@ -4,14 +4,14 @@ body {
 
 .logout {
     position: relative;
-    top: -30px;
-    left: 600px;
+    top: -50px;
+    left: 650px;
 }
 
 .middle_page{
     overflow-y: scroll;
     background-color: aliceblue;
-    height: 400px;
+    height: 450px;
     width: fit-content;
     border-style: solid;
 }
@@ -19,9 +19,9 @@ body {
 .lobby-box{
     background-color: silver;
     border-style: solid;
-    padding: 10px;
-    width: 250px;
-    height: 100px;
+    padding: 5px;
+    width: 300px;
+    height: 240px;
 }
 
 
@@ -29,8 +29,15 @@ table{
     border-spacing: 20px;
 }
 
+.lobby-name{
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
 .lobby-buttons{
     display: inline-block;
+    margin-top: 5px;
 }
 
 .bottom_page{

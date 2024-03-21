@@ -5,6 +5,7 @@
     <title>Pacman Lobby Page</title>
     <link rel="stylesheet" type="text/css" href="/lobby_files/lobby_style.css"/>
     <script src="../lobby_files/lobby_scripts.js"></script>
+    <script src="../js/index.js"></script>
 </head>
 <body>
 
@@ -23,19 +24,6 @@
 <div class="middle_page">
     <br/>
     <script>
-        //REMOVE
-        //async function fetchLobbies() {
-          //  const testData = [
-            //    { id: 1, name: "Test Lobby 1" },
-            //    { id: 2, name: "Test Lobby 2" },
-            //    { id: 3, name: "Test Lobby 3" },
-            //    { id: 4, name: "Test Lobby 4" },
-            //    { id: 5, name: "Test Lobby 5" }
-            //];
-            //return testData;
-        //}
-        //MOCK LOBBIES OVER
-
         async function fetchLobbiesAndRender() {
             try {
                 //CONSTANTS INITIALIZED
@@ -52,14 +40,21 @@
                         if (index < lobbies.length) {
                             const cell = row.insertCell(); // Insert a new cell in the row
                             const lobby = lobbies[index];
+                            const theDate = new Date(lobby.created_at)
+                            const formedDate = theDate.toLocaleString()
+                            const countResp = await fetch(`/api/lobby/${lobby.id}/players`)
+                            const countData = await countResp.json()
                             cell.innerHTML = `
                             <div class="lobby-box">
-                                <div class="lobby-name"
-                                    <p>Lobby Name: ${lobby.name}</p>
+                                <div class="lobby-name">
+                                    <p>${formedDate}</p>
+                                    <hr>
+                                    <p>${lobby.username}'s Lobby:</p>
+                                    <p>${lobby.lobby_name}</p>
                                 </div>
                                 <hr>
                                 <div class="lobby-count">
-                                    <p>Players: ?/4</p>
+                                    <p>Players: ${countData[4]}/4</p>
                                 </div>
                                 <hr>
                                 <div class="lobby-buttons"
@@ -67,7 +62,6 @@
                                         <button>Join</button>
                                     </a>
                                     <button id="delete" onclick="deleteLobby(${lobby.uid})">Delete</button>
-                                    <button id="edit" onclick="">Edit</button>
                                 </div>
                             </div>
                             `;
@@ -92,7 +86,7 @@
             <br/>
             <input id="lobby-text-box" type="text" placeholder="Lobby Name">
         </label>
-       <button id=create-button" onclick="createLobby()">Create</button>
+       <button id=create-button" onclick="createLobby();location.reload()">Create</button>
    </div>
 </div>
 </body>
