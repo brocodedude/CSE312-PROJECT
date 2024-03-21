@@ -16,6 +16,7 @@
         <h4>Please join or create a game lobby below!</h4>
     </div>
     <div class="logout">
+        <p id="username"></p>
         <button id="logout_button" onclick="logout()">Logout</button>
     </div>
 </div>
@@ -27,6 +28,7 @@
             try {
                 //CONSTANTS INITIALIZED
                 const lobbies = await fetchLobbies();
+                const currentUser = fetchUsername();
                 const lobbyTable = document.createElement('table');
                 const lobbyListContainer = document.querySelector('.middle_page');
                 const numRows = Math.ceil(lobbies.length / 2)
@@ -43,6 +45,12 @@
                             const formedDate = theDate.toLocaleString()
                             const countResp = await fetch(`/api/lobby/${lobby.id}/players`)
                             const countData = await countResp.json()
+                            const isCreator = lobby.username === currentUser.username
+                            if(lobby.username === currentUser.username) {
+                                const deleteButtonHtml = `<button id="delete" onclick="deleteLobby(${lobby.id})">Delete</button>`;
+                            }else{
+                                const deleteButtonHtml = ``
+                            }
                             cell.innerHTML = `
                             <div class="lobby-box">
                                 <div class="lobby-name">
@@ -58,7 +66,6 @@
                                 <hr>
                                 <div class="lobby-buttons">
                                     <button id="join" onclick="goToGame('/game/play?lobby=${lobby.id}')">Join</button>
-                                    <button id="delete" onclick="deleteLobby(${lobby.id})">Delete</button>
                                 </div>
                             </div>
                             `;
@@ -80,15 +87,16 @@
               const data = await response.json();
               const username = data.username;
               console.log('Data:', data);
+              document.getElementById('username').textContent = `${username}`;
           } catch (error) {
               console.error('Error fetching username:', error);
               return null;
           }
-      };
+      }
         // Call the function to fetch and render lobbies when the page loads
         window.onload = function() {
-          fetchLobbiesAndRender();
           fetchUsername();
+          fetchLobbiesAndRender();
         };
     </script>
 </div>
@@ -102,6 +110,9 @@
             <input id="lobby-text-box" type="text" placeholder="Lobby Name">
         </label>
         <button id=create-button" onclick="createLobby()">Create</button>
+    </div>
+    <div class="pacmanImage">
+        <img src="/game/assets/player.png" alt="Pacman Character" class="pacImage"/>
     </div>
 </div>
 </body>
