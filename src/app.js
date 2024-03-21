@@ -105,6 +105,16 @@ app.use('/lobby', authTokenValidator, lobbyRouter)
 app.use('/game', authTokenValidator, gameRouter)
 app.use('/api/lobby', authTokenValidator, lobbyApiRouter)
 
+// Route to get currently logged in user information (/me)
+app.get('/api/me', authTokenValidator, async (req, res) => {
+    const result = await verifyAuthToken(req.cookies.auth)
+    if (result) {
+        res.json({ username: result.username })
+    } else {
+        res.status(401).json({message: 'Unauthorized'})
+    }
+})
+
 // Authentication index.
 app.post('/account-reg', (req, res) => {
     const {username, password, passwordVerify} = req.body;
