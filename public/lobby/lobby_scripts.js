@@ -52,11 +52,12 @@ const deleteLobby = (lobbyID) => {
                 throw new Error('Failed to delete lobby');
             }
             console.log('Lobby deleted successfully');
+            location.reload()
         })
         .catch(error => {
             console.error('Error deleting lobby:', error);
+            alert('Failed to delete')
         }).finally(() => {
-        location.reload()
     });
 }
 
