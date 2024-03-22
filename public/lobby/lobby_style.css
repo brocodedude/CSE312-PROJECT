@@ -8,6 +8,16 @@ body {
     left: 650px;
 }
 
+.title {
+    display: flex;
+    align-items: center;
+}
+
+.title h1 {
+    margin-right: 10px; /* Adjust as needed */
+}
+
+
 .middle_page{
     overflow-y: scroll;
     background-color: aliceblue;
