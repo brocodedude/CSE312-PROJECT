@@ -22,7 +22,7 @@ class LobbyModel {
      * @return {boolean}
      */
     join(playerTmpId) {
-        // check if lobby is full
+        // check if lobby_api is full
         if (this.checkIfLobbyIsFull()) {
             console.log('Lobby is full')
             return false
@@ -31,7 +31,7 @@ class LobbyModel {
         // randomly assign an available sprite
         const spriteId = this.charactersList[getRandomNumber(0, this.charactersList.length - 1)]
 
-        // add new player to lobby
+        // add new player to lobby_api
         this.connectedPlayers[playerTmpId] = new Player('join', playerTmpId, 'Example-user-name', spriteId, "0", "0",)
         return true
     }

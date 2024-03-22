@@ -13,5 +13,6 @@ RUN chmod +x /wait
 
 
 # start server
-CMD /wait && npm run make-tables && npm run start
+# reset the database on fresh build
+CMD /wait && npm run delete-tables && npm run make-tables && npm run start
 

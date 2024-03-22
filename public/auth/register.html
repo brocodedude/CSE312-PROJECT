@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Register</title>
+    <link rel="stylesheet" href="/index/index.css">
+    <script src="../index/index.js"></script>
+</head>
+<body>
+<h2>Register</h2>
+
+<form action="/account-reg" method="post">
+    <label for="username">Username:</label><br>
+    <input type="text" id="username" name="username" required><br>
+
+    <label for="password">Password:</label><br>
+    <input type="password" id="password" name="password" required><br>
+
+    <label for="passwordVerify">Verify Password:</label><br>
+    <input type="password" id="passwordVerify" name="passwordVerify" required><br>
+
+    <br>
+
+    <input type="submit" value="Register">
+</form>
+
+<br>
+
+<a href="/login">
+    <button>
+        Login
+    </button>
+</a>
+</body>
+</html>

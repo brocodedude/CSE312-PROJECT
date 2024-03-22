@@ -1,8 +1,9 @@
-const db = require('../db/database');
-
+const db = require('../../db/database');
 
 function list() {
-    return db.select('id', 'uid', 'lobby_name').from('lobbies')
+    return db
+        .select('lobbies.id', 'lobbies.lobby_name', 'lobbies.created_at', 'users.username').from('lobbies')
+        .join('users', 'lobbies.uid', 'users.id');
 }
 
 /**
@@ -14,6 +15,7 @@ function getLobbyId(id) {
     return db.select('lobby_id').where({
         'id': id
     }).from('lobbies')
+        .first()
 }
 
 
@@ -30,21 +32,24 @@ async function insert(uid, lobby_name, lobbyId) {
 
 /**
  * @param {string}id
+ * @param {string} uid
  * @return {Knex.QueryBuilder<TRecord, TResult>}
  */
-function _delete(id) {
+function _delete(id, uid) {
     return db.delete(['uid', 'id', 'lobby_name']).where({
-        'id': id
+        'id': id,
+        'uid': uid,
     }).from('lobbies')
 }
 
 /**
  *
+ * @param {string} uid
  * @param {string} id
  * @param {string} lobbyName
  */
-function update(id, lobbyName) {
-    return db.where('id', id).update({'lobby_name': lobbyName}).from('lobbies').returning('id')
+function update(uid, id, lobbyName) {
+    return db.where('id', id).where('uid', uid).update({'lobby_name': lobbyName}).from('lobbies').returning('id')
 }
 
 module.exports = {
