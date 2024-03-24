@@ -1,5 +1,6 @@
 const {io} = require("../../server");
 const {activeLobbies, socketIds, removeSocketId, setSocketId} = require('./game.service')
+const {removeIdFromIdsList} = require("../lobby_api/lobbyApi.service");
 
 
 // handle joining
@@ -52,11 +53,11 @@ function handleJoinMsg(msg, socket) {
     }
 }
 
-function handleDisconnect(disconnectReason, socket) {
+async function handleDisconnect(disconnectReason, socket) {
     // get player info from socketId about the player leaving
     const data = socketIds[socket.id]
 
-    if (data === undefined){
+    if (data === undefined) {
         console.log('invalid socket')
         // do nothing
         return;
@@ -87,6 +88,8 @@ function handleDisconnect(disconnectReason, socket) {
 
     // remove player from lobby_api
     lobby.leave(userUUID)
+    // remove from database
+    await removeIdFromIdsList(userUUID, lobbyUUID)
 
     // tell connected clients about user leaving
     io.emit('dis', JSON.stringify(player))

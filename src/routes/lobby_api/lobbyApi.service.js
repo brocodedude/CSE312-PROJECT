@@ -12,7 +12,7 @@ function list() {
  * @return {Knex.QueryBuilder<TRecord, TResult>}
  */
 function getLobbyId(id) {
-    return db.select('lobby_id').where({
+    return db.select('lobby_id', 'joined_players').where({
         'id': id
     }).from('lobbies')
         .first()
@@ -27,7 +27,7 @@ function getLobbyId(id) {
  * @return
  */
 async function insert(uid, lobby_name, lobbyId) {
-    return db('lobbies').insert({'uid': uid, 'lobby_name': lobby_name, 'lobby_id': lobbyId}).returning('id');
+    return db('lobbies').insert({'uid': uid, 'lobby_name': lobby_name, 'lobby_id': lobbyId, 'joined_players':{'ids':[]}}).returning('id');
 }
 
 /**
@@ -52,10 +52,48 @@ function update(uid, id, lobbyName) {
     return db.where('id', id).where('uid', uid).update({'lobby_name': lobbyName}).from('lobbies').returning('id')
 }
 
+
+/**
+ * @param {string} id
+ * @param {Object<string, string[]>} ids
+ */
+function updateIdsList(id, ids) {
+    return db
+        .where('id', id)
+        .update({'joined_players': ids})
+        .from('lobbies')
+        .returning('id')
+}
+
+/**
+ * @param {string} lobbyUUID
+ * @param {string} playerUUID
+ */
+async function removeIdFromIdsList(playerUUID, lobbyUUID) {
+    let result = await db('lobbies')
+        .select('joined_players', 'id')
+        .where('lobby_id', lobbyUUID)
+        .first()
+
+    if (result === undefined) {
+        console.log('undefined result list')
+        return
+    }
+
+    // remove from the result
+    // rebuild the new ids list without the id we want to delete
+    result['joined_players']['ids'] = result['joined_players']['ids']
+        .filter(value => value !== playerUUID)
+
+    return updateIdsList(result['id'], result['joined_players'])
+}
+
 module.exports = {
     list,
     getLobbyId,
     insert,
     _delete,
-    update
+    update,
+    updateIdsList,
+    removeIdFromIdsList
 }

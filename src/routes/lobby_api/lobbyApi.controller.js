@@ -32,7 +32,7 @@ router.get('/:id/players', async function (req, res, next) {
         if (result) {
             const lobby = activeLobbies[result['lobby_id']]
             if (lobby) {
-                data['4'] = Object.keys(lobby.connectedPlayers).length
+                data['4'] = result['joined_players']['ids'].length
             }
         }
         res.status(200).send(JSON.stringify(data))

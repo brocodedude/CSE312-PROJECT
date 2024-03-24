@@ -5,7 +5,7 @@ const {v4: uuidv4} = require("uuid");
 // servies
 const {activeLobbies, joinLobby} = require('./game.service')
 const {insertValuesInHTML} = require('../../utils/html_inserter')
-const {getLobbyId} = require("../lobby_api/lobbyApi.service");
+const {getLobbyId, updateIdsList} = require("../lobby_api/lobbyApi.service");
 const {handlePosMsg, handlePelletMsg, handleJoinMsg, handleDisconnect} = require('./game.websocket')
 
 const router = express.Router();
@@ -34,13 +34,16 @@ router.get('/play', async (req, res, next) => {
         }
         const lobbyUUId = tmp['lobby_id']
 
-
         const result = activeLobbies[lobbyUUId].join(playerTmpUUid)
 
         // if failed to join lobby_api because its full or something
         if (!result) {
             res.status(403).send('Lobby is full try another lobby_api or you are unauthorized')
         }
+
+        // add to database
+        tmp['joined_players']['ids'].push(playerTmpUUid)
+        const g = await updateIdsList(lobbyId, tmp['joined_players'])
 
         // insert lobbyid and playerid in html
         const html = await insertValuesInHTML(
