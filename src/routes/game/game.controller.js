@@ -38,7 +38,7 @@ router.get('/play', async (req, res, next) => {
 
         // if failed to join lobby_api because its full or something
         if (!result) {
-            res.status(403).send('Lobby is full try another lobby_api or you are unauthorized')
+            res.status(400).send('Lobby is full try another lobby or you are already joined')
         }
 
         // add to database
