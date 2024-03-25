@@ -28,6 +28,11 @@ class LobbyModel {
             return false
         }
 
+        if (this.connectedPlayers[playerTmpId] !== undefined) {
+            console.log('Player already in lobby')
+            return false
+        }
+
         // randomly assign an available sprite
         const spriteId = this.charactersList[getRandomNumber(0, this.charactersList.length - 1)]
 
@@ -35,7 +40,6 @@ class LobbyModel {
         this.connectedPlayers[playerTmpId] = new Player('join', playerTmpId, 'Example-user-name', spriteId, "0", "0",)
         return true
     }
-
 
 
     leave(playerTmpId) {
