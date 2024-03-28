@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser-arcade-physics.min.js"></script>
+    <title>Lets play a game</title>
+</head>
+<body>
+<script>
+    // main game
+    let playerSprites = {'pac': null, 'gh1': null, 'gh2': null, 'gh3': null}
+    let stars;
+    let platforms;
+    let cursors;
+
+    const config = {
+        type: Phaser.AUTO,
+        width: window.innerWidth,
+        height: window.innerHeight,
+        backgroundColor: 0x000000,
+        physics: {
+            default: 'arcade',
+            arcade: {
+                gravity: 0,
+                debug: true
+            }
+        },
+        scale: {
+            mode: Phaser.Scale.FIT,
+            autoCenter: Phaser.Scale.CENTER_BOTH,
+            parent: 'thegame'
+
+        },
+        scene: {
+            preload: preload,
+            create: create,
+            update: update
+        }
+    };
+
+    const game = new Phaser.Game(config);
+
+    var player;
+    var player2;
+
+
+    function preload() {
+        // sprite sheets
+        this.load.spritesheet("pacman", "assets/pacmanSpriteSheet.png", {
+            frameWidth: 50,
+            frameHeight: 50,
+        });
+        this.load.spritesheet("ghosts", "assets/ghosts.png", {
+            frameWidth: 50,
+            frameHeight: 50,
+        });
+        this.load.spritesheet("fruits", "assets/fruits.png", {
+            frameWidth: 50,
+            frameHeight: 50,
+        });
+
+        this.load.image('secondTile', 'assets/secondTile.png')
+        this.load.image('forthTile', 'assets/forthTile.png')
+        this.load.image('centrepoint', 'assets/centrepoint.png')
+
+
+        this.load.tilemapTiledJSON('map', 'assets/map.json')
+    }
+
+    /**
+     *  @type {?Phaser.Tilemaps.TilemapLayer} mapLayer
+     */
+    let mapLayer
+
+
+    /**
+     *  @type {?Phaser.Tilemaps.TilemapLayer} mapLayer
+     */
+    let pelletLayer
+    let userName
+    const userNameOffSetX = 55
+    const userNameOffSetY = 40
+
+    function create() {
+        createMap(this)
+
+        // const deCol = this.add.graphics().setAlpha(0.7)
+        // pelletLayer.renderDebug(
+        //     deCol,
+        //     {
+        //         tileColor: null,
+        //         collidingTileColor: new Phaser.Display.Color(243, 243, 48, 255),
+        //         faceColor: new Phaser.Display.Color(40, 39, 37, 255),
+        //     }
+        // )
+
+        cursors = this.input.keyboard.createCursorKeys();
+        // create animations
+        pacmanAnimInit(this)
+        ghostsAnimInit(this)
+
+        // create pacman
+        player = this.physics.add.sprite(100, 450, 'ghosts');
+        player.anims.play('ghostBlueNorth');
+        player.setScale(.7)
+        player.setOrigin(0.5);
+        player.setCollideWorldBounds(true);
+        userName = this.add.text(player.x - userNameOffSetX, player.y - userNameOffSetY, 'Insert username here', {
+            fontFamily: 'Arial',
+            fontSize: 12,
+            color: '#ffffff'
+        });
+
+        this.physics.add.collider(player, mapLayer)
+        this.physics.add.collider(player, pelletLayer, pelletCallBack)
+
+
+        // // create ghosts
+        // player2 = this.physics.add.sprite(100, 300, 'pacman');
+        //
+        // player2.setOrigin(0.5);
+        // player2.setCollideWorldBounds(true);
+    }
+
+    function createMap(ctx) {
+        const map = ctx.make.tilemap({key: 'map'})
+
+        const blueTile = map.addTilesetImage('secondTile', 'secondTile')
+        const redTile = map.addTilesetImage('forthTile', 'forthTile')
+        const pellets = map.addTilesetImage('centrepoint', 'centrepoint')
+
+        mapLayer = map.createLayer('map', [blueTile, redTile])
+        pelletLayer = map.createLayer('pellets', pellets)
+
+        mapLayer.setCollisionByExclusion([-1], true, true)
+        pelletLayer.setCollisionByExclusion([-1])
+    }
+
+    function pelletCallBack(pacman, pellet) {
+        pelletLayer.removeTileAt(pellet.x, pellet.y)
+        console.log(pelletLayer.tilesDrawn)
+
+    }
+
+
+    function pacmanAnimInit(ctx) {
+        let namesArray = [
+            'pacmanEastAnim',
+            'pacmanNorthAnim',
+            'pacmanSouthAnim',
+            'pacmanWestAnim',
+        ]
+        let indexArray = 0
+        for (let i = 0; i < 12; i += 3) {
+            ctx.anims.create({
+                frames: ctx.anims.generateFrameNumbers('pacman', {start: i + 1, end: i + 3}),
+                key: namesArray[indexArray],
+                frameRate: 10,
+                repeat: -1
+            });
+            indexArray++
+        }
+
+        // neutral pacman
+        ctx.anims.create({
+            frames: ctx.anims.generateFrameNumbers('pacman', {start: 0, end: 0}),
+            key: 'neutralPacman',
+            frameRate: 1,
+            repeat: -1
+        });
+
+    }
+
+    function ghostsAnimInit(ctx) {
+        let namesArray = [
+            'ghostRedEast',
+            'ghostRedNorth',
+            'ghostRedSouth',
+            'ghostRedWest',
+            'ghostBlueEast',
+            'ghostBlueNorth',
+            'ghostBlueSouth',
+            'ghostBlueWest',
+            'ghostPinkEast',
+            'ghostPinkNorth',
+            'ghostPinkSouth',
+            'ghostPinkWest',
+            'ghostOrangeEast',
+            'ghostOrangeNorth',
+            'ghostOrangeSouth',
+            'ghostOrangeWest',
+            'frigthenedAnim',
+        ]
+        for (let i = 0; i < namesArray.length; i++) {
+            ctx.anims.create({
+                frames: ctx.anims.generateFrameNumbers('ghosts', {start: i, end: i}),
+                key: namesArray[i],
+            })
+        }
+    }
+
+    const movementSpeed = 160
+
+    function update() {
+        if (cursors.left.isDown) {
+            // remove vertical velocity
+            player.setVelocityY(0);
+            player.setVelocityX(-movementSpeed);
+        } else if (cursors.right.isDown) {
+            // remove vertical velocity
+            player.setVelocityY(0);
+            player.setVelocityX(movementSpeed);
+        } else if (cursors.up.isDown) {
+            // remove horizontal velocity
+            player.setVelocityX(0);
+            player.setVelocityY(-movementSpeed);
+        } else if (cursors.down.isDown) {
+            // remove horizontal velocity
+            player.setVelocityX(0);
+            player.setVelocityY(movementSpeed);
+        } else {
+            player.setVelocityY(0);
+            player.setVelocityX(0);
+        }
+        userName.setPosition(player.x - userNameOffSetX, player.y - userNameOffSetY);
+    }
+
+</script>
+
+<div id="thegame"></div>
+
+</body>
+</html>`
