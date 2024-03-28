@@ -30,10 +30,15 @@ class LobbyModel {
             return false
         }
 
+        // shuffle the sprite list
         // randomly assign an available sprite
-        const chIndex = getRandomNumber(0, this.charactersList.length - 1)
-        const spriteId = this.charactersList[chIndex]
-        const chAnim = this.defaultCharacterAnimList[chIndex]
+        // use the last index
+
+        this.charactersList = shuffleArray(this.charactersList)
+
+        const lastIndex = this.charactersList.length - 1
+        const spriteId = this.charactersList[lastIndex]
+        const chAnim = this.defaultCharacterAnimList[lastIndex]
 
         // add new player to lobby
         this.connectedPlayers[playerTmpId] = new Player(
@@ -45,6 +50,10 @@ class LobbyModel {
             "0",
             chAnim
         )
+
+        // remove from available sprite
+        this.charactersList.pop()
+
         return true
     }
 
@@ -63,12 +72,12 @@ class LobbyModel {
     }
 }
 
-function getRandomNumber(min, max) {
-    if (min === max) {
-        return min;
-    } else {
-        return Math.floor(Math.random() * (max - min + 1)) + min;
+function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
     }
+    return array;
 }
 
 module.exports = LobbyModel

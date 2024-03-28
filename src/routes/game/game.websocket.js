@@ -101,13 +101,18 @@ function handlePosMsg(msg, socket) {
     socket.broadcast.emit('pos', msg)
 }
 
-function handlePelletMsg(msg, socket) {
+function handlePelletMsg(msg, _) {
+    io.emit('pellet', msg)
 }
 
+function handlePacmanDead(msg, _){
+    io.emit('pacded', msg)
+}
 
 module.exports = {
     handleDisconnect,
     handleJoinMsg,
     handlePelletMsg,
-    handlePosMsg
+    handlePosMsg,
+    handlePacmanDead
 }

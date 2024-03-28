@@ -24,8 +24,20 @@
     socket.on('pos', handlePos)
     socket.on('dis', handleDis)
     socket.on('pellet', function (msg) {
-        console.log('Pellet eaten')
+        const json = JSON.parse(msg)
+        const x = json.x
+        const y = json.y
+        console.log(`Pellet eaten at x:${x}, y:${y}`)
+        pelletLayer.removeTileAt(x, y)
     })
+
+    // pacman dead
+    socket.on('pacded', function (_) {
+        console.log('Received pacman is dead')
+        playerSprites['pcm'].playerInfo.destroy()
+        gameEnd = true
+    })
+
 
     function handleJoin(msg) {
         let json = JSON.parse(msg);
@@ -74,7 +86,9 @@
 
     // helper variables
     let cursors;
-
+    let gameEnd = false
+    let gameOverText
+    let isRedirecting = true
     // mapped sprite id with:
     // playerInfo
     // default anim
@@ -194,6 +208,7 @@
             const defaultAnim = sprite.defaultAnim
             const startPos = sprite.startPos
 
+
             let tmp = this.physics.add.sprite(
                 startPos[0],
                 startPos[1],
@@ -215,17 +230,84 @@
                     color: '#ffffff'
                 });
 
+            if (playerType === 'pcm') {
+                // if pacman
+                this.physics.add.collider(tmp, pelletLayer, pelletCallBack)
+            } else {
+                // if ghosts collide with pacman
+                this.physics.add.collider(tmp, playerSprites['pcm'].playerInfo, destroyPacmanCallBack)
+
+            }
+
+            this.physics.add.collider(tmp, mapLayer)
+
             tmp.id = playerType
             // attach player info
             playerSprites[playerType].playerInfo = tmp
         }
+
+        // Set up the "Game Ended" text
+        const textStyle = {fontFamily: 'Arial', fontSize: 48, color: '#ffffff'};
+        gameOverText = this.add.text(200, 200, 'Game Ended', textStyle);
+        gameOverText.setOrigin(0.5);
+        gameOverText.visible = false; // Initially hide the text
+    }
+
+    function createPlayer(spriteId) {
+        const sprite = playerSprites[spriteId]
+        const defaultAnim = sprite.defaultAnim
+        const startPos = sprite.startPos
+
+
+        let tmp = this.physics.add.sprite(
+            startPos[0],
+            startPos[1],
+            playerType === 'pcm' ? 'pacman' : 'ghosts'
+        );
+
+        tmp.anims.play(defaultAnim);
+        tmp.setOrigin(0.5);
+        tmp.setCollideWorldBounds(true);
+        tmp.setScale(.7)
+        // Set the width and height of the player sprite
+        // tmp.displayWidth = 48; // Set width to 64 pixels
+        // tmp.displayHeight = 48; // Set height to 64 pixels
+        playerSprites[playerType].userNameTextPos = this.add.text(
+            tmp.x - userNameOffSetX,
+            tmp.y - userNameOffSetY, '', {
+                fontFamily: 'Arial',
+                fontSize: 12,
+                color: '#ffffff'
+            });
+
+        this.physics.add.collider(player, mapLayer)
+        this.physics.add.collider(player, pelletLayer, pelletCallBack)
+
+        tmp.id = playerType
+        return tmp
     }
 
     function update() {
+        if (gameEnd) {
+            // Show the "Game Ended" text
+            gameOverText.visible = true;
+
+            if (isRedirecting) {
+                window.location.href = '/lobby';
+                // here so the game doesn't repeatedly redirect
+                isRedirecting = false
+            }
+
+
+            // Prevent further updates
+            this.input.off('pointerdown'); // Remove the event listener to avoid multiple redirects
+            return;
+        }
+
         const tmp = allPlayers[userId]
         // initial empty because websocket is requesting info
         if (tmp === undefined) {
-            console.log('waiting for player info')
+            console.log(`waiting for player ${userId}`)
             return
         }
 
@@ -336,9 +418,13 @@
     }
 
     function pelletCallBack(pacman, pellet) {
-        pelletLayer.removeTileAt(pellet.x, pellet.y)
-        console.log(pelletLayer.tilesDrawn)
+        socket.emit('pellet', JSON.stringify({x: pellet.x, y: pellet.y}))
+        // console.log(pelletLayer.tilesDrawn)
+    }
 
+    function destroyPacmanCallBack(ghost, pacman) {
+        // tell all clients pacman is dead
+        socket.emit('pacded', '')
     }
 
     function setUserNameTextPos(spriteId) {
