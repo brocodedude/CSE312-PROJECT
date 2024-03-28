@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Halt!! Identify Yourself</title>
+    <link rel="icon" type="image/x-icon" href="/images/favicon.ico">
+</head>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const form = document.getElementById('login-form')
+        form.addEventListener('submit', function (event) {
+            event.preventDefault();
+
+            // Retrieve the username and password from the form
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            if (!username || !password) {
+                alert('Please enter all details')
+            }
+
+            const urlEncodedData = new URLSearchParams({'username': username, 'password': password,}).toString();
+
+            // Send the form data using Fetch API
+            fetch('/login', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                body: urlEncodedData,
+                redirect: 'follow' // Enable automatic following of redirects
+            }).then(response => {
+                if (response.redirected) {
+                    console.log('Redirecting to ' + response.url)
+                    window.location.href = response.url;
+                } else {
+                    if (response.statusText) {
+                        alert('Error ' + response.statusText)
+                    }
+                }
+            }).catch(error => {
+                console.error('There was a problem sending data to server:', error);
+            });
+
+        })
+    })
+
+</script>
+<body>
+<h2>Let's see some ID</h2>
+<form id="login-form">
+    <label for="username">Username:</label><br>
+    <input type="text" id="username" name="username" required><br>
+
+    <label for="password">Password:</label><br>
+    <input type="password" id="password" name="password" required><br>
+
+    <br>
+
+    <input type="submit" value="Login">
+</form>
+
+<br>
+
+<a href="/register">
+    <button>
+        Register
+    </button>
+</a>
+
+</body>
+</html>

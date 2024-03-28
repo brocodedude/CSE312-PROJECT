@@ -11,6 +11,7 @@ exports.up = function (knex) {
           table.increments('id').primary();
           table.string('username').unique().notNullable();
           table.string('password').notNullable();
+          table.string('auth_token').index()
         }
     ).createTable('lobbies', function (table) {
         table.increments('id').primary();
@@ -18,6 +19,7 @@ exports.up = function (knex) {
         table.foreign('uid').references('id').inTable('users');
         table.string('lobby_name').notNullable();
         table.string('lobby_id').unique().notNullable();
+        table.jsonb('joined_players');
         table.timestamps(true, true);
     });
 };

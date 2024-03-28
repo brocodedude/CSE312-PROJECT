@@ -1,24 +1,23 @@
-const {io} = require('../server')
+const {io} = require('../../server')
 const express = require("express");
 const {v4: uuidv4} = require("uuid");
 const path = require('path')
 // services
 const {activeLobbies, joinLobby} = require('./game.service')
-const insertValuesInHTML = require('../utils/html_inserter')
-const {getLobbyId} = require("../lobby/lobby.service");
+const {insertValuesInHTML} = require('../../utils/html_inserter')
+const {getLobbyId, updateIdsList} = require("../lobby_api/lobbyApi.service");
 const {handlePosMsg, handlePelletMsg, handleJoinMsg, handleDisconnect} = require('./game.websocket')
 
 const router = express.Router();
 
 router.get('/play', async (req, res, next) => {
-    console.log('Received join lobby request')
+    console.log('Received join lobby_api request')
     // check auth and verify user
-    let userId = '';
+    let userId = req.authDetails.id;
     let lobbyId = ''
     try {
         const queryParams = req.url.split('?')[1].split('&')
-        userId = queryParams[0].split('=')[1]
-        lobbyId = queryParams[1].split('=')[1]
+        lobbyId = queryParams[0].split('=')[1]
     } catch (e) {
         console.log('Failed to read query prams')
         console.log(e)
@@ -29,19 +28,22 @@ router.get('/play', async (req, res, next) => {
 
     try {
         const tmp = await getLobbyId(lobbyId)
-        if (tmp.length === 0) {
+        if (!tmp) {
             console.log('Failed to get lobbyId, Probably incorrect lobbyId')
             res.status(403).send('Invalid request. Lobby is invalid')
         }
-        const lobbyUUId = tmp[0]['lobby_id']
-
+        const lobbyUUId = tmp['lobby_id']
 
         const result = activeLobbies[lobbyUUId].join(playerTmpUUid)
 
-        // if failed to join lobby because its full or something
+        // if failed to join lobby_api because its full or something
         if (!result) {
-            res.status(403).send('Lobby is full try another lobby or you are unauthorized')
+            res.status(400).send('Lobby is full try another lobby or you are already joined')
         }
+
+        // add to database
+        tmp['joined_players']['ids'].push(playerTmpUUid)
+        const g = await updateIdsList(lobbyId, tmp['joined_players'])
 
         // insert lobbyid and playerid in html
         const html = await insertValuesInHTML(

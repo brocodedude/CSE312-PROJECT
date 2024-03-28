@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Pacman Lobby Page</title>
+    <link rel="stylesheet" type="text/css" href="/lobby/lobby_style.css"/>
+    <link rel="icon" type="image/x-icon" href="/images/favicon.ico">
+    <script src="/lobby/lobby_scripts.js"></script>
+</head>
+<body>
+
+<div class="top_page">
+    <div class="title">
+        <img src="/game/assets/player.png" width="64" height="64" alt="Pacman Character" class="pacImage"/>
+        <h1>Pacman Lobbies</h1>
+    </div>
+    <div class="pacmanImage">
+    </div>
+    <div class="page_info">
+        <h4>Please join or create a game lobby below!</h4>
+    </div>
+    <div class="logout">
+        <p id="username"></p>
+        <button id="logout_button" onclick="logout()">Logout</button>
+    </div>
+</div>
+
+<div class="middle_page">
+    <br/>
+    <script>
+        async function fetchLobbiesAndRender() {
+            try {
+                //CONSTANTS INITIALIZED
+                const lobbies = await fetchLobbies();
+                const currentUser = await fetchUsername();
+                const lobbyTable = document.createElement('table');
+                const lobbyListContainer = document.querySelector('.middle_page');
+                const numRows = Math.ceil(lobbies.length / 2)
+                lobbyListContainer.innerHTML = '';
+                //NOW WE MAKE THE TABLE
+                for (let i = 0; i < numRows; i++) {
+                    const row = lobbyTable.insertRow(); // Insert a new row
+                    for (let j = 0; j < 2; j++) {
+                        const index = i * 2 + j;
+                        if (index < lobbies.length) {
+                            const cell = row.insertCell(); // Insert a new cell in the row
+                            const lobby = lobbies[index];
+                            const theDate = new Date(lobby.created_at)
+                            const formedDate = theDate.toLocaleString()
+                            const countResp = await fetch(`/api/lobby/${lobby.id}/players`)
+                            const countData = await countResp.json()
+                            const isCreator = lobby.username === currentUser
+                            let deleteButtonHtml = ``
+
+                            if (isCreator) {
+                                deleteButtonHtml = `<button id="delete" onclick="deleteLobby(${lobby.id})">Delete</button>`;
+                            }
+
+                            cell.innerHTML = `
+                            <div class="lobby-box">
+                                <div class="lobby-name">
+                                    <p>${formedDate}</p>
+                                    <hr>
+                                    <p>${lobby.username}'s Lobby:</p>
+                                    <p>${lobby.lobby_name}</p>
+                                </div>
+                                <hr>
+                                <div class="lobby-count">
+                                    <p>Players: ${countData[4]}/4</p>
+                                </div>
+                                <hr>
+                                <div class="lobby-buttons">
+                                    ${deleteButtonHtml}
+                                    <button id="join" onclick="goToGame('/game/play?lobby=${lobby.id}')">Join</button>
+                                </div>
+                            </div>
+                            `;
+                        }
+                    }
+                }
+                lobbyListContainer.appendChild(lobbyTable)
+            } catch (error) {
+                console.error('Error fetching and rendering lobbies:', error);
+            }
+        }
+
+        // Function to fetch the username.
+        async function fetchUsername() {
+            try {
+                const response = await fetch('/api/me');
+                if (!response.ok) {
+                    throw new Error('Failed to fetch username');
+                }
+                const data = await response.json();
+                const username = data.username;
+                console.log('Data:', data);
+                document.getElementById('username').textContent = `User: ${username}`;
+                return username
+            } catch (error) {
+                console.error('Error fetching username:', error);
+                return null;
+            }
+        }
+
+        // Call the function to fetch and render lobbies when the page loads
+        window.onload = function () {
+            fetchUsername();
+            fetchLobbiesAndRender();
+        };
+    </script>
+</div>
+
+<div class="bottom_page">
+    <br/>
+    <div class="create-lobby-form">
+        <label>
+            Create a Lobby:
+            <br/>
+            <input id="lobby-text-box" type="text" placeholder="Lobby Name">
+        </label>
+        <button id=create-button" onclick="createLobby()">Create</button>
+    </div>
+
+</div>
+</body>
+</html>

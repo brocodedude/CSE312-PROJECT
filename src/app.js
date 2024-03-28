@@ -6,15 +6,14 @@ const createError = require('http-errors');
 const bcrypt = require('bcrypt');
 
 // routers
-const indexRouter = require('./routes');
-const lobbyRouter = require('./lobby/lobby.controller');
-const gameRouter = require('./game/game.controller');
-
-// middlewares
-const authMiddleware = require('./middleware/auth.middleware')
+const indexRouter = require('./routes/index');
+const gameRouter = require('./routes/game/game.controller');
+const loginRouter = require('./routes/login/login.controller')
+const lobbyRouter = require('./routes/lobby/lobby.controller')
+const lobbyApiRouter = require('./routes/lobby_api/lobbyApi.controller');
 
 // utils
-const {initActiveLobbies} = require('./game/game.service')
+const {initActiveLobbies} = require('./routes/game/game.service')
 const isDocker = require('./utils/docker_check')
 
 // core server
@@ -22,6 +21,8 @@ const {server, app} = require('./server')
 
 // database
 const db = require('./db/database');
+const authTokenValidator = require("./middleware/auth_token_validator");
+const {updateAuthToken, verifyAuthToken} = require("./routes/login/login.service");
 
 
 const port = 9000;
@@ -60,18 +61,6 @@ app.use((req, res, next) => {
 
 app.use(express.static(path.join(__dirname, '../public')));
 
-// Route for CSS.
-app.get('/css/styles.css', (req, res) => {
-    // res.setHeader('Content-Type', 'text/css');
-    res.sendFile(path.join(__dirname, '../public/css/styles.css'));
-});
-
-// Route for JS.
-app.get('/js/index.js', (req, res) => {
-    // res.setHeader('Content-Type', 'text/javascript');
-    res.sendFile(path.join(__dirname, '../public/script.js'));
-});
-
 // Route for IMAGES.
 app.get('/images/:imageName', (req, res) => {
     const imageName = req.params.imageName;
@@ -91,52 +80,76 @@ app.get('/register', (req, res) => {
     res.sendFile(path.join(__dirname, '../public/auth/register.html'));
 });
 
+// logout
+app.get('/logout', async (req, res) => {
+    if (req.cookies.auth) {
+        const result = await verifyAuthToken(req.cookies.auth)
+        if (result) {
+            await updateAuthToken(result.id, '')
+            // set null auth token
+        }
+    }
+    // remove cookie
+    res.clearCookie('auth')
+    res.redirect('/login');
+});
+
 
 // Route for home page.
-app.use('/', indexRouter);
-app.use('/api/lobby', authMiddleware, lobbyRouter)
-app.use('/game', gameRouter)
+app.get('/', async (req, res, next) => {
+    res.redirect('/lobby')
+})
+app.use('/login', loginRouter)
+// validator to verify user, only logged-in users can access these paths
+app.use('/lobby', authTokenValidator, lobbyRouter)
+app.use('/game', authTokenValidator, gameRouter)
+app.use('/api/lobby', authTokenValidator, lobbyApiRouter)
 
-// Authentication routes.
+// Route to get currently logged in user information (/me)
+app.get('/api/me', authTokenValidator, async (req, res) => {
+  return res.json({username: req.authDetails.username});
+})
+
+// Authentication index.
 app.post('/account-reg', (req, res) => {
-  const { username, password, passwordVerify } = req.body;
+    const {username, password, passwordVerify} = req.body;
 
-  if (!username || !password || !passwordVerify) {
-    return res.status(400).json({ message: 'Username and password are required' });
-  }
+    if (!username || !password || !passwordVerify) {
+        return res.status(400).json({message: 'Username and password are required'});
+    }
 
-  // Ensure that the password & passwordVerify match
-  if (password !== passwordVerify) {
-    return res.status(400).json({ message: 'Passwords do not match.' });
-  }
-  // Before adding to the database, ensure the username doesn't already exist.
-  db('users')
-    .where({ username })
-    .first()
-    .then((user) => {
-      if (user) {
-        return res.status(400).json({ message: 'Username already exists.' });
-      } else {
-        // Hash the password & store user into database.
-        const saltRounds = 10;
-        bcrypt.hash(password, saltRounds, (err, hash) => {
-          if (err) {
-            return res.status(500).json({ message: 'An error occurred.' });
-          }
-          // Add the user to the database
-          db('users')
-            .insert({ username, password: hash })
-            .then(() => {
-              // Redirect to homepage.
-              res.redirect('/');
-            })
-            .catch((err) => {
-              console.log(err);
-              res.status(500).json({ message: 'An error occurred.' });
-            });
+    // Ensure that the password & passwordVerify match
+    if (password !== passwordVerify) {
+        return res.status(400).json({message: 'Passwords do not match.'});
+    }
+    // Before adding to the database, ensure the username doesn't already exist.
+    db('users')
+        .where({username})
+        .first()
+        .then((user) => {
+            if (user) {
+                return res.status(400).json({message: 'Username already exists.'});
+            } else {
+                // Hash the password & store user into database.
+                const saltRounds = 10;
+                bcrypt.hash(password, saltRounds, (err, hash) => {
+                    if (err) {
+                        return res.status(500).json({message: 'An error occurred.'});
+                    }
+                    // Add the user to the database
+                    db('users')
+                        .insert({username, password: hash})
+                        .then(() => {
+                            // Redirect to homepage.
+                            res.redirect('/');
+                        })
+                        .catch((err) => {
+                            console.log(err);
+                            res.status(500).json({message: 'An error occurred.'});
+                        });
+                });
+            }
         });
-      }
-    });
 });
 
 // catch 404 and forward to error handler

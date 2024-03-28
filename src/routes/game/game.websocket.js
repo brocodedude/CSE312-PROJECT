@@ -1,5 +1,6 @@
-const {io} = require("../server");
+const {io} = require("../../server");
 const {activeLobbies, socketIds, removeSocketId, setSocketId} = require('./game.service')
+const {removeIdFromIdsList} = require("../lobby_api/lobbyApi.service");
 
 
 // handle joining
@@ -16,7 +17,7 @@ function handleJoinMsg(msg, socket) {
     }
 
     // TODO check if playerId is valid
-    // check lobby id
+    // check lobby_api id
     const lobby = activeLobbies[lobbyId]
 
     if (lobby === undefined) {
@@ -43,7 +44,7 @@ function handleJoinMsg(msg, socket) {
     // tell everyone including client that new player joined
     io.emit('set', JSON.stringify(playerData))
 
-    // tell new client current players in lobby after client has joined
+    // tell new client current players in lobby_api after client has joined
     for (const player in lobby.connectedPlayers) {
         const currPlayer = lobby.connectedPlayers[player]
         if (currPlayer.playerid !== userId) {
@@ -52,11 +53,11 @@ function handleJoinMsg(msg, socket) {
     }
 }
 
-function handleDisconnect(disconnectReason, socket) {
+async function handleDisconnect(disconnectReason, socket) {
     // get player info from socketId about the player leaving
     const data = socketIds[socket.id]
 
-    if (data === undefined){
+    if (data === undefined) {
         console.log('invalid socket')
         // do nothing
         return;
@@ -68,11 +69,11 @@ function handleDisconnect(disconnectReason, socket) {
     console.log(`removing user ${userUUID} from lobby ${lobbyUUID}`)
     console.log(disconnectReason)
 
-    // get player from lobby
+    // get player from lobby_api
     const lobby = activeLobbies[lobbyUUID]
 
     if (lobby === undefined) {
-        console.log('invalid lobby')
+        console.log('invalid lobby_api')
         // do nothing
         return
     }
@@ -85,8 +86,10 @@ function handleDisconnect(disconnectReason, socket) {
         return
     }
 
-    // remove player from lobby
+    // remove player from lobby_api
     lobby.leave(userUUID)
+    // remove from database
+    await removeIdFromIdsList(userUUID, lobbyUUID)
 
     // tell connected clients about user leaving
     io.emit('dis', JSON.stringify(player))

@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const {list, insert, getLobbyId, _delete, update} = require('./lobby.service')
-const validator = require('../middleware/lobby_fields.middleware')
+const {list, insert, getLobbyId, _delete, update} = require('./lobbyApi.service')
+const validator = require('./lobbyApi.middleware')
 const {v4: uuidv4} = require('uuid');
 const {validationResult} = require("express-validator");
 const he = require('he');
@@ -17,6 +17,31 @@ router.get('/', async function (req, res, next) {
         res.status(400).send('Bad request. Make sure you are sending the correct data with correct values')
     }
 });
+
+// gets current players joined
+router.get('/:id/players', async function (req, res, next) {
+    const id = req.params.id;
+
+    if (isNaN(id)) {
+        res.status(400).send('Bad Request. Make sure the url is properly formated')
+    }
+    try {
+        // maps max players to connected players
+        let data = {4: '0'}
+        const result = await getLobbyId(id)
+        if (result) {
+            const lobby = activeLobbies[result['lobby_id']]
+            if (lobby) {
+                data['4'] = result['joined_players']['ids'].length
+            }
+        }
+        res.status(200).send(JSON.stringify(data))
+    } catch (e) {
+        console.error(e)
+        res.status(400).send('Bad request. Make sure you are sending the correct data with correct values')
+    }
+});
+
 
 router.get('/:id', async function (req, res, next) {
     const id = req.params.id;
@@ -35,7 +60,7 @@ router.get('/:id', async function (req, res, next) {
 });
 
 
-// create a new lobby
+// create a new lobby_api
 router.post('/', validator, async function (req, res, next) {
     const errors = validationResult(req);
 
@@ -45,14 +70,14 @@ router.post('/', validator, async function (req, res, next) {
 
     // get the fields
     const {
-        uid, lobby_name
+        lobby_name
     } = req.body
 
     // generate new id
     const lobbyId = uuidv4();
 
     try {
-        const result = await insert(uid, lobby_name, lobbyId)
+        const result = await insert(req.authDetails.id, lobby_name, lobbyId)
         // add to active lobbies
         activeLobbies[lobbyId] = new LobbyModel()
         res.status(201).send(JSON.stringify(result[0]))
@@ -79,7 +104,7 @@ router.patch('/:id', async function (req, res, next) {
 
     try {
         // encode to escape any characters
-        const result = await update(id, he.encode(lobbyName))
+        const result = await update(req.authDetails.id, id, he.encode(lobbyName))
         res.status(200).send(JSON.stringify(result[0]))
     } catch (e) {
         console.error(e)
@@ -94,7 +119,9 @@ router.delete('/:id', async function (req, res, next) {
     }
 
     try {
-        const result = await _delete(id)
+        // send the id of the lobby_api to delete and the id of user who requested it
+        // this will make sure other users cannot delete other players lobbies
+        const result = await _delete(id, req.authDetails.id)
         // remove from active lobbies
         delete activeLobbies[id]
         res.status(200).send(JSON.stringify(result))
