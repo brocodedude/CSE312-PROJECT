@@ -20,7 +20,6 @@
         console.log('Connected')
     })
 
-    // custom connection message used by the project
     socket.on('set', handleJoin)
     socket.on('pos', handlePos)
     socket.on('dis', handleDis)
@@ -31,9 +30,10 @@
     function handleJoin(msg) {
         let json = JSON.parse(msg);
         if (!json.spriteType) {
-            throw new DOMException("No sprite id found")
+            throw new Error("No sprite id found")
         }
         allPlayers[json.playerid] = json
+        setUserNameText(json.spriteType, json.user)
     }
 
     function handleDis(msg) {
@@ -41,6 +41,7 @@
         console.log('disconnect')
         console.log(json.playerid)
         delete allPlayers[json.playerid]
+        setUserNameText(json.spriteType, '')
     }
 
     function handlePos(msg) {
@@ -49,11 +50,19 @@
         // update player
         allPlayers[json.id] = json
 
+        if (playerSprites[spriteId].playerInfo === null) {
+            console.log('Client not ready')
+            return
+        }
+
         // update other player sprites
-        playerSprites[spriteId][0].x = json.x
-        playerSprites[spriteId][0].y = json.y
+        playerSprites[spriteId].playerInfo.x = json.x
+        playerSprites[spriteId].playerInfo.y = json.y
+        // update other player username text
+        setUserNameTextPos(spriteId)
+
         try {
-            playerSprites[spriteId][0].anims.play(json.spriteAnim, true)
+            playerSprites[spriteId].playerInfo.anims.play(json.spriteAnim, true)
         } catch (e) {
             // if invalid anim default to neutral image
             playerSprites[spriteId][0].anims.play()
@@ -62,6 +71,8 @@
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // main game
+
+    // helper variables
     let cursors;
 
     // mapped sprite id with:
@@ -69,17 +80,59 @@
     // default anim
     // anim base so that we can add direction
     // start pos : {x, y}
+    /**
+     *
+     * @type {{gh2: {playerInfo: null, animBase: string, userNameTextPos: null, defaultAnim: string, startPos: number[]}, gh1: {playerInfo: null, animBase: string, userNameTextPos: null, defaultAnim: string, startPos: number[]}, gh3: {playerInfo: null, animBase: string, userNameTextPos: null, defaultAnim: string, startPos: number[]}, pcm: {playerInfo: null, animBase: string, userNameTextPos: null, defaultAnim: string, startPos: number[]}}}
+     */
     let playerSprites = {
-        'pcm': [null, 'pacmanDefault', 'pacman', [400, 100]],
-        'gh1': [null, 'ghostRedNorth', 'ghostRed', [400, 200]],
-        'gh2': [null, 'ghostBlueNorth', 'ghostBlue', [400, 300]],
-        'gh3': [null, 'ghostPinkNorth', 'ghostPink', [400, 400]],
+        'pcm': {
+            playerInfo: null,
+            defaultAnim: 'pacmanDefault',
+            animBase: 'pacman',
+            startPos: [400, 100],
+            userNameTextPos: null,
+        },
+        'gh1': {
+            playerInfo: null,
+            defaultAnim: 'ghostRedNorth',
+            animBase: 'ghostRed',
+            startPos: [400, 200],
+            userNameTextPos: null,
+        },
+        'gh2': {
+            playerInfo: null,
+            defaultAnim: 'ghostBlueNorth',
+            animBase: 'ghostBlue',
+            startPos: [400, 300],
+            userNameTextPos: null,
+        },
+        'gh3': {
+            playerInfo: null,
+            defaultAnim: 'ghostPinkNorth',
+            animBase: 'ghostPink',
+            startPos: [400, 400],
+            userNameTextPos: null,
+        },
     }
+
+    const userNameOffSetX = 55
+    const userNameOffSetY = 40
+    // movement
+    const movementSpeed = -160
+
+    /**
+     *  @type {?Phaser.Tilemaps.TilemapLayer} mapLayer
+     */
+    let mapLayer
+    /**
+     *  @type {?Phaser.Tilemaps.TilemapLayer} mapLayer
+     */
+    let pelletLayer
 
     const config = {
         type: Phaser.AUTO,
-        width: 1200,
-        height: 720,
+        width: window.innerWidth,
+        height: window.innerHeight,
         backgroundColor: 0x000000,
         physics: {
             default: 'arcade',
@@ -92,15 +145,14 @@
             mode: Phaser.Scale.FIT,
             autoCenter: Phaser.Scale.CENTER_BOTH,
             parent: 'thegame'
-
         },
-        pixelArt: true,
         scene: {
             preload: preload,
             create: create,
             update: update
         }
     };
+
 
     const game = new Phaser.Game(config);
 
@@ -118,20 +170,19 @@
             frameWidth: 50,
             frameHeight: 50,
         });
+        this.load.image('secondTile', 'assets/secondTile.png')
+        this.load.image('forthTile', 'assets/forthTile.png')
+        this.load.image('centrepoint', 'assets/centrepoint.png')
 
-        this.load.tilemapTiledJSON('map',"map.json");
+        this.load.tilemapTiledJSON('map', "assets/map.json");
     }
 
     function create() {
         // keyboard detect
         cursors = this.input.keyboard.createCursorKeys();
 
-        // Create purple borders
-        const borderThickness = 10;
-        const borderGraphics = this.add.graphics();
-        borderGraphics.lineStyle(borderThickness, 0x800080, 1); // Purple color
-        borderGraphics.strokeRect(borderThickness / 2, borderThickness / 2, config.width - borderThickness, config.height - borderThickness);
-
+        // Set Map
+        createMap(this)
 
         // create animations
         pacmanAnimInit(this)
@@ -140,8 +191,8 @@
         // load in initial sprites
         for (let playerType in playerSprites) {
             const sprite = playerSprites[playerType]
-            const defaultAnim = sprite[1]
-            const startPos = sprite[3]
+            const defaultAnim = sprite.defaultAnim
+            const startPos = sprite.startPos
 
             let tmp = this.physics.add.sprite(
                 startPos[0],
@@ -152,14 +203,21 @@
             tmp.anims.play(defaultAnim);
             tmp.setOrigin(0.5);
             tmp.setCollideWorldBounds(true);
-
+            tmp.setScale(.7)
             // Set the width and height of the player sprite
             // tmp.displayWidth = 48; // Set width to 64 pixels
             // tmp.displayHeight = 48; // Set height to 64 pixels
+            playerSprites[playerType].userNameTextPos = this.add.text(
+                tmp.x - userNameOffSetX,
+                tmp.y - userNameOffSetY, '', {
+                    fontFamily: 'Arial',
+                    fontSize: 12,
+                    color: '#ffffff'
+                });
 
             tmp.id = playerType
             // attach player info
-            playerSprites[playerType][0] = tmp
+            playerSprites[playerType].playerInfo = tmp
         }
     }
 
@@ -173,52 +231,55 @@
 
         let currentPlayerSpriteType = allPlayers[userId].spriteType
         // anims
-        const neutralAnim = playerSprites[currentPlayerSpriteType][1]
-        const anim = playerSprites[currentPlayerSpriteType][2]
-        let curAnim = neutralAnim
-        // movement
-        let movementSpeed = -160
+        const neutralAnim = playerSprites[currentPlayerSpriteType].defaultAnim
+        const anim = playerSprites[currentPlayerSpriteType].animBase
+        let curAnim;
 
         if (cursors.left.isDown) {
             // remove vertical velocity
-            playerSprites[currentPlayerSpriteType][0].setVelocityY(0);
-            playerSprites[currentPlayerSpriteType][0].setVelocityX(movementSpeed);
+            playerSprites[currentPlayerSpriteType].playerInfo.setVelocityY(0);
+            playerSprites[currentPlayerSpriteType].playerInfo.setVelocityX(movementSpeed);
             // set anim
             curAnim = `${anim}West`
-            setSpriteAnim(playerSprites[currentPlayerSpriteType][0], curAnim)
+            setSpriteAnim(playerSprites[currentPlayerSpriteType].playerInfo, curAnim)
 
         } else if (cursors.right.isDown) {
             // remove vertical velocity
-            playerSprites[currentPlayerSpriteType][0].setVelocityY(0);
-            playerSprites[currentPlayerSpriteType][0].setVelocityX(-movementSpeed);
+            playerSprites[currentPlayerSpriteType].playerInfo.setVelocityY(0);
+            playerSprites[currentPlayerSpriteType].playerInfo.setVelocityX(-movementSpeed);
 
             curAnim = `${anim}East`
-            setSpriteAnim(playerSprites[currentPlayerSpriteType][0], curAnim)
+            setSpriteAnim(playerSprites[currentPlayerSpriteType].playerInfo, curAnim)
         } else if (cursors.up.isDown) {
             // remove horizontal velocity
-            playerSprites[currentPlayerSpriteType][0].setVelocityX(0);
-            playerSprites[currentPlayerSpriteType][0].setVelocityY(movementSpeed);
+            playerSprites[currentPlayerSpriteType].playerInfo.setVelocityX(0);
+            playerSprites[currentPlayerSpriteType].playerInfo.setVelocityY(movementSpeed);
 
             curAnim = `${anim}North`
-            setSpriteAnim(playerSprites[currentPlayerSpriteType][0], curAnim)
+            setSpriteAnim(playerSprites[currentPlayerSpriteType].playerInfo, curAnim)
         } else if (cursors.down.isDown) {
             // remove horizontal velocity
-            playerSprites[currentPlayerSpriteType][0].setVelocityX(0);
-            playerSprites[currentPlayerSpriteType][0].setVelocityY(-movementSpeed);
+            playerSprites[currentPlayerSpriteType].playerInfo.setVelocityX(0);
+            playerSprites[currentPlayerSpriteType].playerInfo.setVelocityY(-movementSpeed);
 
             curAnim = `${anim}South`
-            setSpriteAnim(playerSprites[currentPlayerSpriteType][0], curAnim)
+            setSpriteAnim(playerSprites[currentPlayerSpriteType].playerInfo, curAnim)
         } else {
-            playerSprites[currentPlayerSpriteType][0].setVelocityY(0);
-            playerSprites[currentPlayerSpriteType][0].setVelocityX(0);
+            playerSprites[currentPlayerSpriteType].playerInfo.setVelocityY(0);
+            playerSprites[currentPlayerSpriteType].playerInfo.setVelocityX(0);
 
             curAnim = neutralAnim
-            setSpriteAnim(playerSprites[currentPlayerSpriteType][0], curAnim, false)
+            setSpriteAnim(playerSprites[currentPlayerSpriteType].playerInfo, curAnim, false)
         }
 
-        allPlayers[userId].x = playerSprites[currentPlayerSpriteType][0].x
-        allPlayers[userId].y = playerSprites[currentPlayerSpriteType][0].y
+        // move username text
+        setUserNameTextPos(currentPlayerSpriteType)
+
+        // setup info to send to server
+        allPlayers[userId].x = playerSprites[currentPlayerSpriteType].playerInfo.x
+        allPlayers[userId].y = playerSprites[currentPlayerSpriteType].playerInfo.y
         allPlayers[userId].spriteAnim = curAnim
+
 
         socket.emit('pos', JSON.stringify(allPlayers[userId]))
     }
@@ -254,6 +315,47 @@
             repeat: -1
         });
 
+    }
+
+    function createMap(ctx) {
+        const map = ctx.make.tilemap({key: 'map'})
+
+        const blueTile = map.addTilesetImage('secondTile', 'secondTile')
+        const redTile = map.addTilesetImage('forthTile', 'forthTile')
+        const pellets = map.addTilesetImage('centrepoint', 'centrepoint')
+
+        mapLayer = map.createLayer('map', [blueTile, redTile])
+        pelletLayer = map.createLayer('pellets', pellets)
+
+        if (mapLayer === null || pelletLayer === null) {
+            throw Error('Map layer or pellet layer failed to initlize')
+        }
+
+        mapLayer.setCollisionByExclusion([-1], true, true)
+        pelletLayer.setCollisionByExclusion([-1])
+    }
+
+    function pelletCallBack(pacman, pellet) {
+        pelletLayer.removeTileAt(pellet.x, pellet.y)
+        console.log(pelletLayer.tilesDrawn)
+
+    }
+
+    function setUserNameTextPos(spriteId) {
+        playerSprites[spriteId]
+            .userNameTextPos
+            .setPosition(
+                playerSprites[spriteId].playerInfo.x - userNameOffSetX,
+                playerSprites[spriteId].playerInfo.y - userNameOffSetY
+            );
+    }
+
+    function setUserNameText(spriteId, text) {
+        if (playerSprites[spriteId].userNameTextPos === null) {
+            console.log('Client is not ready yet to set username text')
+            return
+        }
+        playerSprites[spriteId].userNameTextPos.setText(text);
     }
 
     function ghostsAnimInit(ctx) {

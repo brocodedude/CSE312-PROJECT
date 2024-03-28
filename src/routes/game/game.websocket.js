@@ -44,7 +44,8 @@ function handleJoinMsg(msg, socket) {
     // tell everyone including client that new player joined
     io.emit('set', JSON.stringify(playerData))
 
-    // tell new client current players in lobby_api after client has joined
+    // tell this new client
+    // about current players in lobby
     for (const player in lobby.connectedPlayers) {
         const currPlayer = lobby.connectedPlayers[player]
         if (currPlayer.playerid !== userId) {

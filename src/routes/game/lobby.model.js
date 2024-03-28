@@ -20,9 +20,10 @@ class LobbyModel {
     /**
      *
      * @param {string} playerTmpId
+     * @param {string} username
      * @return {boolean}
      */
-    join(playerTmpId) {
+    join(playerTmpId,username) {
         // check if lobby is full
         if (this.checkIfLobbyIsFull()) {
             console.log('Lobby is full')
@@ -38,7 +39,7 @@ class LobbyModel {
         this.connectedPlayers[playerTmpId] = new Player(
             'join',
             playerTmpId,
-            'Example-user-name',  // todo get user name
+            username,
             spriteId,
             "0",
             "0",

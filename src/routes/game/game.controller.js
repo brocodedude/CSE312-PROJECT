@@ -11,9 +11,10 @@ const {handlePosMsg, handlePelletMsg, handleJoinMsg, handleDisconnect} = require
 const router = express.Router();
 
 router.get('/play', async (req, res, next) => {
-    console.log('Received join lobby_api request')
+    console.log('Received join lobby request')
     // check auth and verify user
     let userId = req.authDetails.id;
+
     let lobbyId = ''
     try {
         const queryParams = req.url.split('?')[1].split('&')
@@ -31,14 +32,16 @@ router.get('/play', async (req, res, next) => {
         if (!tmp) {
             console.log('Failed to get lobbyId, Probably incorrect lobbyId')
             res.status(403).send('Invalid request. Lobby is invalid')
+            return
         }
         const lobbyUUId = tmp['lobby_id']
 
-        const result = activeLobbies[lobbyUUId].join(playerTmpUUid)
+        const result = activeLobbies[lobbyUUId].join(playerTmpUUid, req.authDetails.username)
 
         // if failed to join lobby_api because its full or something
         if (!result) {
             res.status(400).send('Lobby is full try another lobby or you are already joined')
+            return
         }
 
         // add to database
