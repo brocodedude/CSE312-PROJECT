@@ -6,7 +6,7 @@ const path = require('path')
 const {activeLobbies, joinLobby} = require('./game.service')
 const {insertValuesInHTML} = require('../../utils/html_inserter')
 const {getLobbyId, updateIdsList} = require("../lobby_api/lobbyApi.service");
-const {handlePosMsg, handlePelletMsg, handleJoinMsg, handleDisconnect, handlePacmanDead} = require('./game.websocket')
+const {handlePosMsg, handlePelletMsg, handleJoinMsg, handleDisconnect, handlePacmanDead, handlePowerUp} = require('./game.websocket')
 
 const router = express.Router();
 
@@ -90,6 +90,10 @@ io.on('connection', (socket) => {
 
     socket.on('pacded', (msg) => {
         return handlePacmanDead(msg, socket)
+    });
+
+    socket.on('power', (msg) => {
+        return handlePowerUp(msg, socket)
     });
 
     // handle disconnect

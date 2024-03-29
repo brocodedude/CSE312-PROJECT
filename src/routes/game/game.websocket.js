@@ -109,10 +109,16 @@ function handlePacmanDead(msg, _){
     io.emit('pacded', msg)
 }
 
+function handlePowerUp(msg, _){
+    io.emit('power', msg)
+}
+
+
 module.exports = {
     handleDisconnect,
     handleJoinMsg,
     handlePelletMsg,
     handlePosMsg,
-    handlePacmanDead
+    handlePacmanDead,
+    handlePowerUp
 }

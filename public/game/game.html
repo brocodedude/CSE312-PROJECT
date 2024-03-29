@@ -29,13 +29,45 @@
         const y = json.y
         console.log(`Pellet eaten at x:${x}, y:${y}`)
         pelletLayer.removeTileAt(x, y)
+        if (pelletLayer.tilesDrawn === 1) {
+            // all pellets eaten
+            gameEnd = true
+        }
+    })
+
+    socket.on('power', function (msg) {
+        const json = JSON.parse(msg)
+        const x = json.x
+        const y = json.y
+        console.log(`Pellet eaten at x:${x}, y:${y}`)
+        powerLayer.removeTileAt(x, y)
+        // give pacman power up
+        playerSprites['pcm'].isPoweredUp = 1500
     })
 
     // pacman dead
-    socket.on('pacded', function (_) {
-        console.log('Received pacman is dead')
-        playerSprites['pcm'].playerInfo.destroy()
-        gameEnd = true
+    socket.on('pacded', function (msg) {
+        if (playerSprites['pcm'].isPoweredUp === 0 || playerSprites['pcm'].isPoweredUp > 1200) {
+            console.log('Received pacman is dead')
+            playerSprites['pcm'].playerInfo.destroy()
+            gameEnd = true
+            return
+        }
+
+        const spriteId = JSON.parse(msg).id
+        if (spriteId !== undefined) {
+            playerSprites[spriteId].playerInfo.destroy()
+            setUserNameText(spriteId, '')
+
+            if (!playerSprites['gh1'].playerInfo.active
+                && !playerSprites['gh2'].playerInfo.active
+                && !playerSprites['gh3'].playerInfo.active
+            ) {   // all ghosts eaten
+                gameEnd = true
+            }
+            return;
+        }
+        console.log('Json does not have id')
     })
 
 
@@ -96,43 +128,50 @@
     // start pos : {x, y}
     /**
      *
-     * @type {{gh2: {playerInfo: null, animBase: string, userNameTextPos: null, defaultAnim: string, startPos: number[]}, gh1: {playerInfo: null, animBase: string, userNameTextPos: null, defaultAnim: string, startPos: number[]}, gh3: {playerInfo: null, animBase: string, userNameTextPos: null, defaultAnim: string, startPos: number[]}, pcm: {playerInfo: null, animBase: string, userNameTextPos: null, defaultAnim: string, startPos: number[]}}}
+     * @type {{gh2: {playerInfo: null, animBase: string, userNameTextPos: null, movementSpeed: number, defaultAnim: string, startPos: number[]}, gh1: {playerInfo: null, animBase: string, userNameTextPos: null, movementSpeed: number, defaultAnim: string, startPos: number[]}, gh3: {playerInfo: null, animBase: string, userNameTextPos: null, movementSpeed: number, defaultAnim: string, startPos: number[]}, pcm: {isPoweredUp: number, playerInfo: null, animBase: string, userNameTextPos: null, movementSpeed: number, defaultAnim: string, startPos: number[]}}}
      */
-    let playerSprites = {
+    const playerSprites = {
         'pcm': {
             playerInfo: null,
             defaultAnim: 'pacmanDefault',
             animBase: 'pacman',
-            startPos: [400, 100],
+            startPos: [1050, 925],
             userNameTextPos: null,
+            isPoweredUp: 0,
+            movementSpeed: -200
+
         },
         'gh1': {
             playerInfo: null,
             defaultAnim: 'ghostRedNorth',
             animBase: 'ghostRed',
-            startPos: [400, 200],
+            startPos: [670.1666666666666, 424.49999999999994],  // x: 723.4999999999992y: 424.49999999999994
             userNameTextPos: null,
+            movementSpeed: -160
+
         },
         'gh2': {
             playerInfo: null,
             defaultAnim: 'ghostBlueNorth',
             animBase: 'ghostBlue',
-            startPos: [400, 300],
+            startPos: [723.4999999999992, 424.49999999999994],
             userNameTextPos: null,
+            movementSpeed: -160
         },
         'gh3': {
             playerInfo: null,
             defaultAnim: 'ghostPinkNorth',
             animBase: 'ghostPink',
-            startPos: [400, 400],
+            startPos: [776.8333333333, 424.49999999999994],
             userNameTextPos: null,
+            movementSpeed: -160
+
         },
     }
 
-    const userNameOffSetX = 55
-    const userNameOffSetY = 40
+    const userNameOffSetX = 15
+    const userNameOffSetY = 35
     // movement
-    const movementSpeed = -160
 
     /**
      *  @type {?Phaser.Tilemaps.TilemapLayer} mapLayer
@@ -142,6 +181,11 @@
      *  @type {?Phaser.Tilemaps.TilemapLayer} mapLayer
      */
     let pelletLayer
+    /**
+     *  @type {?Phaser.Tilemaps.TilemapLayer} mapLayer
+     */
+    let powerLayer
+
 
     const config = {
         type: Phaser.AUTO,
@@ -152,7 +196,6 @@
             default: 'arcade',
             arcade: {
                 gravity: 0,
-                debug: true
             }
         },
         scale: {
@@ -187,6 +230,7 @@
         this.load.image('secondTile', 'assets/secondTile.png')
         this.load.image('forthTile', 'assets/forthTile.png')
         this.load.image('centrepoint', 'assets/centrepoint.png')
+        this.load.image('power-up', 'assets/powercent.png')
 
         this.load.tilemapTiledJSON('map', "assets/map.json");
     }
@@ -233,10 +277,10 @@
             if (playerType === 'pcm') {
                 // if pacman
                 this.physics.add.collider(tmp, pelletLayer, pelletCallBack)
+                this.physics.add.collider(tmp, powerLayer, powerUpCallBack)
             } else {
                 // if ghosts collide with pacman
-                this.physics.add.collider(tmp, playerSprites['pcm'].playerInfo, destroyPacmanCallBack)
-
+                this.physics.add.collider(tmp, playerSprites['pcm'].playerInfo, killPacmanCallBack)
             }
 
             this.physics.add.collider(tmp, mapLayer)
@@ -253,41 +297,26 @@
         gameOverText.visible = false; // Initially hide the text
     }
 
-    function createPlayer(spriteId) {
-        const sprite = playerSprites[spriteId]
-        const defaultAnim = sprite.defaultAnim
-        const startPos = sprite.startPos
+    function powerUpCheck() {
+        if (playerSprites['pcm'].isPoweredUp > 0 || playerSprites['pcm'].isPoweredUp > 1200) {
+            // time left till powerup
+            playerSprites['pcm'].isPoweredUp -= 1
+            playerSprites['pcm'].playerInfo.tint = 0xff0000;
+            playerSprites['pcm'].movementSpeed = -160
+        } else {
+            playerSprites['pcm'].playerInfo.tint = 0xffffff; // Reset tint to white (no tint)
+            playerSprites['pcm'].movementSpeed = -200
+        }
+    }
 
-
-        let tmp = this.physics.add.sprite(
-            startPos[0],
-            startPos[1],
-            playerType === 'pcm' ? 'pacman' : 'ghosts'
-        );
-
-        tmp.anims.play(defaultAnim);
-        tmp.setOrigin(0.5);
-        tmp.setCollideWorldBounds(true);
-        tmp.setScale(.7)
-        // Set the width and height of the player sprite
-        // tmp.displayWidth = 48; // Set width to 64 pixels
-        // tmp.displayHeight = 48; // Set height to 64 pixels
-        playerSprites[playerType].userNameTextPos = this.add.text(
-            tmp.x - userNameOffSetX,
-            tmp.y - userNameOffSetY, '', {
-                fontFamily: 'Arial',
-                fontSize: 12,
-                color: '#ffffff'
-            });
-
-        this.physics.add.collider(player, mapLayer)
-        this.physics.add.collider(player, pelletLayer, pelletCallBack)
-
-        tmp.id = playerType
-        return tmp
+    function movePlayer(currentPlayerSpriteType, x = 0, y = 0) {
+        playerSprites[currentPlayerSpriteType].playerInfo.setVelocityY(y);
+        playerSprites[currentPlayerSpriteType].playerInfo.setVelocityX(x);
     }
 
     function update() {
+        powerUpCheck();
+
         if (gameEnd) {
             // Show the "Game Ended" text
             gameOverText.visible = true;
@@ -319,30 +348,26 @@
 
         if (cursors.left.isDown) {
             // remove vertical velocity
-            playerSprites[currentPlayerSpriteType].playerInfo.setVelocityY(0);
-            playerSprites[currentPlayerSpriteType].playerInfo.setVelocityX(movementSpeed);
+            movePlayer(currentPlayerSpriteType, playerSprites[currentPlayerSpriteType].movementSpeed, 0);
             // set anim
             curAnim = `${anim}West`
             setSpriteAnim(playerSprites[currentPlayerSpriteType].playerInfo, curAnim)
 
         } else if (cursors.right.isDown) {
             // remove vertical velocity
-            playerSprites[currentPlayerSpriteType].playerInfo.setVelocityY(0);
-            playerSprites[currentPlayerSpriteType].playerInfo.setVelocityX(-movementSpeed);
+            movePlayer(currentPlayerSpriteType, -playerSprites[currentPlayerSpriteType].movementSpeed, 0);
 
             curAnim = `${anim}East`
             setSpriteAnim(playerSprites[currentPlayerSpriteType].playerInfo, curAnim)
         } else if (cursors.up.isDown) {
             // remove horizontal velocity
-            playerSprites[currentPlayerSpriteType].playerInfo.setVelocityX(0);
-            playerSprites[currentPlayerSpriteType].playerInfo.setVelocityY(movementSpeed);
+            movePlayer(currentPlayerSpriteType, 0, playerSprites[currentPlayerSpriteType].movementSpeed);
 
             curAnim = `${anim}North`
             setSpriteAnim(playerSprites[currentPlayerSpriteType].playerInfo, curAnim)
         } else if (cursors.down.isDown) {
             // remove horizontal velocity
-            playerSprites[currentPlayerSpriteType].playerInfo.setVelocityX(0);
-            playerSprites[currentPlayerSpriteType].playerInfo.setVelocityY(-movementSpeed);
+            movePlayer(currentPlayerSpriteType, 0, -playerSprites[currentPlayerSpriteType].movementSpeed);
 
             curAnim = `${anim}South`
             setSpriteAnim(playerSprites[currentPlayerSpriteType].playerInfo, curAnim)
@@ -405,16 +430,19 @@
         const blueTile = map.addTilesetImage('secondTile', 'secondTile')
         const redTile = map.addTilesetImage('forthTile', 'forthTile')
         const pellets = map.addTilesetImage('centrepoint', 'centrepoint')
+        const powerUp = map.addTilesetImage('power-up', 'power-up')
 
         mapLayer = map.createLayer('map', [blueTile, redTile])
         pelletLayer = map.createLayer('pellets', pellets)
+        powerLayer = map.createLayer('powerup', powerUp)
 
-        if (mapLayer === null || pelletLayer === null) {
+        if (mapLayer === null || pelletLayer === null || powerLayer == null) {
             throw Error('Map layer or pellet layer failed to initlize')
         }
 
         mapLayer.setCollisionByExclusion([-1], true, true)
         pelletLayer.setCollisionByExclusion([-1])
+        powerLayer.setCollisionByExclusion([-1])
     }
 
     function pelletCallBack(pacman, pellet) {
@@ -422,9 +450,14 @@
         // console.log(pelletLayer.tilesDrawn)
     }
 
-    function destroyPacmanCallBack(ghost, pacman) {
+    function powerUpCallBack(pacman, powerUp) {
+        socket.emit('power', JSON.stringify({x: powerUp.x, y: powerUp.y}))
+        // console.log(pelletLayer.tilesDrawn)
+    }
+
+    function killPacmanCallBack(ghost, pacman) {
         // tell all clients pacman is dead
-        socket.emit('pacded', '')
+        socket.emit('pacded', JSON.stringify({id: ghost.id}))
     }
 
     function setUserNameTextPos(spriteId) {

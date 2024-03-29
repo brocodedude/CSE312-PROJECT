@@ -7,7 +7,7 @@ class LobbyModel {
     // todo figure out how to do pellets
 
     // which player is controlling which character
-    charactersList = ['pcm', 'gh1', 'gh2', 'gh3']
+    charactersList = ['gh1', 'gh2', 'gh3', 'pcm']
     defaultCharacterAnimList = ['pacmanDefault', 'ghostRedNorth', 'ghostBlueNorth', 'ghostPinkNorth']
 
     /**
@@ -23,7 +23,7 @@ class LobbyModel {
      * @param {string} username
      * @return {boolean}
      */
-    join(playerTmpId,username) {
+    join(playerTmpId, username) {
         // check if lobby is full
         if (this.checkIfLobbyIsFull()) {
             console.log('Lobby is full')
@@ -50,7 +50,6 @@ class LobbyModel {
             "0",
             chAnim
         )
-
         // remove from available sprite
         this.charactersList.pop()
 
