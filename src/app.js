@@ -5,6 +5,11 @@ const logger = require('morgan');
 const createError = require('http-errors');
 const bcrypt = require('bcrypt');
 
+// env vars
+// this might look weird but trust me leave this alone
+require('dotenv').config({path: '.env'}); // Load variables from .env file
+require('dotenv').config({path: '../../.env'}); // Load variables from .env file if using cli
+
 // routers
 const indexRouter = require('./routes/index');
 const gameRouter = require('./routes/game/game.controller');
@@ -23,9 +28,7 @@ const {server, app} = require('./server')
 const db = require('./db/database');
 const authTokenValidator = require("./middleware/auth_token_validator");
 const {updateAuthToken, verifyAuthToken} = require("./routes/login/login.service");
-
-
-const port = 9000;
+const {configDotenv} = require("dotenv");
 
 app.use(logger('dev'));
 app.use(express.json());
@@ -107,7 +110,7 @@ app.use('/api/lobby', authTokenValidator, lobbyApiRouter)
 
 // Route to get currently logged in user information (/me)
 app.get('/api/me', authTokenValidator, async (req, res) => {
-  return res.json({username: req.authDetails.username});
+    return res.json({username: req.authDetails.username});
 })
 
 // Authentication index.
@@ -160,12 +163,15 @@ app.use(function (req, res, next) {
 // TODO error handler
 // app.use();
 
-// Listen on 8080.
+
+const port = parseInt(process.env.PORT);
+const host = process.env.HOST
+
 // setup lobbies then start the server
 initActiveLobbies().then(() => {
-        server.listen(port, () => {
+        server.listen(port, host, () => {
             if (isDocker) {
-                console.log(`App is running at localhost:8080 or the port defined in docker-compose.yml`)
+                console.log(`App is running at port 8080 or the port defined in docker-compose.yml`)
                 return
             }
 
