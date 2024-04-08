@@ -11,7 +11,8 @@ exports.up = function (knex) {
           table.increments('id').primary();
           table.string('username').unique().notNullable();
           table.string('password').notNullable();
-          table.string('auth_token').index()
+          table.string('auth_token').index(),
+          table.string('profile_image_url');
         }
     ).createTable('lobbies', function (table) {
         table.increments('id').primary();

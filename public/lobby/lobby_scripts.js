@@ -4,7 +4,8 @@ async function fetchLobbies() {
         if (!response.ok) {
             throw new Error('Failed to fetch lobbies');
         }
-        return await response.json();
+        const lobbyResponse = await response.json();
+        return lobbyResponse;
 
         // Extracting names and IDs from lobbies
 

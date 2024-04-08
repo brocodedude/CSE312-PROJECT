@@ -5,6 +5,20 @@ const logger = require('morgan');
 const createError = require('http-errors');
 const bcrypt = require('bcrypt');
 
+const multer = require('multer');
+
+// Set up multer to store uploads in the 'uploads/' directory
+const storage = multer.diskStorage({
+  destination: function(req, file, cb) {
+    cb(null, 'uploads/')
+  },
+  filename: function(req, file, cb) {
+    cb(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname))
+  }
+})
+
+const upload = multer({ storage: storage })
+
 // env vars
 // this might look weird but trust me leave this alone
 require('dotenv').config({path: '.env'}); // Load variables from .env file
@@ -52,9 +66,11 @@ app.use((req, res, next) => {
         case '.js':
             res.setHeader('Content-Type', 'text/javascript');
             break;
-        case '.png':
-            res.setHeader('Content-Type', 'image/png');
-            break;
+        
+        // removing this. might interfere with multer.
+        // case '.png':
+        //     res.setHeader('Content-Type', 'image/png');
+        //     break;
         // Add more cases as needed
         default:
             break;
@@ -63,6 +79,7 @@ app.use((req, res, next) => {
 });
 
 app.use(express.static(path.join(__dirname, '../public')));
+app.use('/lobby/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // Route for IMAGES.
 app.get('/images/:imageName', (req, res) => {
@@ -110,7 +127,29 @@ app.use('/api/lobby', authTokenValidator, lobbyApiRouter)
 
 // Route to get currently logged in user information (/me)
 app.get('/api/me', authTokenValidator, async (req, res) => {
-    return res.json({username: req.authDetails.username});
+    return res.json({ username: req.authDetails.username, profileImageUrl: req.authDetails.profile_image_url });
+})
+
+// Route to update profile image
+app.post('/api/updateProfileImage', authTokenValidator, upload.single("avatar"), async (req, res) => {
+  const profileImage = req.file;
+  if (!profileImage) {
+      return res.status(400).json({message: 'Profile image is required'});
+  }
+
+  // Get the filename of the uploaded file
+  const filename = profileImage.filename;
+
+  // Get the path of the uploaded file
+  const profileImageUrl = path.join('uploads', filename);
+
+  const result = await db('users').where('username', req.authDetails.username).update({profile_image_url: profileImageUrl})
+  if (result === 1) {
+    // Redirect to homepage.
+    return res.redirect('/lobby');
+  } else {
+    return res.status(500).json({message: 'An error occurred while updating profile image'})
+  }
 })
 
 // Authentication index.

@@ -2,7 +2,7 @@ const db = require('../../db/database');
 
 function list() {
     return db
-        .select('lobbies.id', 'lobbies.lobby_name', 'lobbies.created_at', 'users.username').from('lobbies')
+        .select('lobbies.id', 'lobbies.lobby_name', 'lobbies.created_at', 'users.username', 'users.profile_image_url').from('lobbies')
         .join('users', 'lobbies.uid', 'users.id');
 }
 

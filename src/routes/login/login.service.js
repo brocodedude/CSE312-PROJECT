@@ -70,7 +70,7 @@ function verifyAuthToken(token) {
     return db
         .where('auth_token', hashed)
         .from('users')
-        .returning(['id', 'username'])
+        .returning(['id', 'username', 'profile_image_url'])
         .first()
 }
 

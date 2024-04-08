@@ -10,19 +10,29 @@
 <body>
 
 <div class="top_page">
-    <div class="title">
-        <img src="/game/assets/player.png" width="64" height="64" alt="Pacman Character" class="pacImage"/>
-        <h1>Pacman Lobbies</h1>
-    </div>
-    <div class="pacmanImage">
-    </div>
-    <div class="page_info">
-        <h4>Please join or create a game lobby below!</h4>
-    </div>
-    <div class="logout">
-        <p id="username"></p>
-        <button id="logout_button" onclick="logout()">Logout</button>
-    </div>
+  <div class="title">
+    <img src="/game/assets/player.png" width="64" height="64" alt="Pacman Character" class="pacImage"/>
+    <h1>Pacman Lobbies</h1>
+  </div>
+  <div class="pacmanImage">
+  </div>
+  <div class="page_info">
+    <h4>Please join or create a game lobby below!</h4>
+  </div>
+  <div class="logout">
+    <p id="username"></p>
+    <form action="/api/updateProfileImage" method="post" enctype="multipart/form-data">
+      <label for="profileImage">
+        <img src="../images/default_profile.jpeg" class="profileImage" alt="User profile image" />
+      </label>
+      <input type="file" id="profileImage" name="avatar" style="display: none;" />
+    </form>
+    <button id="logout_button" onclick="logout()">Logout</button>
+  </div>
+  <!-- <form action="/profile" method="post" enctype="multipart/form-data">
+    <input type="file" name="avatar" />
+    <input type="submit" value="Upload Image" />
+  </form> -->
 </div>
 
 <div class="middle_page">
@@ -61,6 +71,7 @@
                                 <div class="lobby-name">
                                     <p>${formedDate}</p>
                                     <hr>
+                                    <img src="${lobby.profile_image_url ? lobby.profile_image_url : '../images/default_profile.jpeg'}" alt="Lobby owner profile image" class="lobbyProfileImage"/>
                                     <p>${lobby.username}'s Lobby:</p>
                                     <p>${lobby.lobby_name}</p>
                                 </div>
@@ -102,9 +113,32 @@
             }
         }
 
+        // Function to fetch the profile image.
+        async function fetchProfileImage() {
+            try {
+                const response = await fetch('/api/me');
+                if (!response.ok) {
+                  throw new Error('Failed to fetch profile image');
+                }
+                const data = await response.json();
+                const profileImage = data.profileImageUrl;
+                if (profileImage) {
+                    document.querySelector('.profileImage').src = profileImage;
+                }
+            } catch (error) {
+                console.error('Error fetching profile image:', error);
+            }
+        }
+
+        // Submits the form when a new profile image is selected.
+        document.getElementById('profileImage').addEventListener('change', function() {
+            this.form.submit();
+        });
+
         // Call the function to fetch and render lobbies when the page loads
         window.onload = function () {
             fetchUsername();
+            fetchProfileImage();
             fetchLobbiesAndRender();
         };
     </script>
