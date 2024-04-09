@@ -11,9 +11,6 @@ services:
       POSTGRES_DB: ${DB_NAME}
     expose:
       - 5432
-    ports:
-      - "5432:5432"
-    container_name: db
 
   app:
     # Runs the API
@@ -27,3 +24,4 @@ services:
       - db
     ports:
       - 8080:${PORT}
+    restart: unless-stopped

@@ -12,7 +12,8 @@
 
     let allPlayers = {};
 
-    const socket = io();
+    const socket = io({transports: ['websocket']});
+    let prevGameState;
 
     // default socket io connection message
     socket.on('connect', () => {
@@ -20,9 +21,57 @@
         console.log('Connected')
     })
 
-    socket.on('set', handleJoin)
-    socket.on('pos', handlePos)
-    socket.on('dis', handleDis)
+    socket.on('state', function (msg) {
+        prevGameState = msg
+        // prevGameState = JSON.parse(msg);
+        console.log(prevGameState.ghostsEaten)
+        // start once all state has been received
+        const game = new Phaser.Game(config);
+    })
+
+    // actual join with player info
+    socket.on('set', function (msg) {
+        let json = JSON.parse(msg);
+        if (!json.spriteType) {
+            throw new Error("No sprite id found")
+        }
+        allPlayers[json.playerid] = json
+        playerSprites[json.spriteType].username = json.user
+    })
+
+    socket.on('pos', function (msg) {
+        let json = JSON.parse(msg);
+        let spriteId = json.spriteType
+        // update player
+        allPlayers[json.id] = json
+
+        if (playerSprites[spriteId].playerInfo === null) {
+            console.log('Client not ready')
+            return
+        }
+
+        // update other player sprites
+        playerSprites[spriteId].playerInfo.x = json.x
+        playerSprites[spriteId].playerInfo.y = json.y
+        // update other player username text
+        setUserNameTextPos(spriteId)
+
+        try {
+            playerSprites[spriteId].playerInfo.anims.play(json.spriteAnim, true)
+        } catch (e) {
+            // if invalid anim default to neutral image
+            playerSprites[spriteId][0].anims.play()
+        }
+    })
+
+    socket.on('dis', function (msg) {
+        const json = JSON.parse(msg);
+        console.log('disconnect')
+        console.log(json.playerid)
+        delete allPlayers[json.playerid]
+        setUserNameText(json.spriteType, '')
+    })
+
     socket.on('pellet', function (msg) {
         const json = JSON.parse(msg)
         const x = json.x
@@ -70,49 +119,6 @@
         console.log('Json does not have id')
     })
 
-
-    function handleJoin(msg) {
-        let json = JSON.parse(msg);
-        if (!json.spriteType) {
-            throw new Error("No sprite id found")
-        }
-        allPlayers[json.playerid] = json
-        setUserNameText(json.spriteType, json.user)
-    }
-
-    function handleDis(msg) {
-        const json = JSON.parse(msg);
-        console.log('disconnect')
-        console.log(json.playerid)
-        delete allPlayers[json.playerid]
-        setUserNameText(json.spriteType, '')
-    }
-
-    function handlePos(msg) {
-        let json = JSON.parse(msg);
-        let spriteId = json.spriteType
-        // update player
-        allPlayers[json.id] = json
-
-        if (playerSprites[spriteId].playerInfo === null) {
-            console.log('Client not ready')
-            return
-        }
-
-        // update other player sprites
-        playerSprites[spriteId].playerInfo.x = json.x
-        playerSprites[spriteId].playerInfo.y = json.y
-        // update other player username text
-        setUserNameTextPos(spriteId)
-
-        try {
-            playerSprites[spriteId].playerInfo.anims.play(json.spriteAnim, true)
-        } catch (e) {
-            // if invalid anim default to neutral image
-            playerSprites[spriteId][0].anims.play()
-        }
-    }
-
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // main game
 
@@ -145,7 +151,7 @@
             playerInfo: null,
             defaultAnim: 'ghostRedNorth',
             animBase: 'ghostRed',
-            startPos: [670.1666666666666, 424.49999999999994],  // x: 723.4999999999992y: 424.49999999999994
+            startPos: [670.1666666666666, 424.49999999999994],
             userNameTextPos: null,
             movementSpeed: -160
 
@@ -186,7 +192,6 @@
      */
     let powerLayer
 
-
     const config = {
         type: Phaser.AUTO,
         width: window.innerWidth,
@@ -209,9 +214,6 @@
             update: update
         }
     };
-
-
-    const game = new Phaser.Game(config);
 
     function preload() {
         // sprite sheets
@@ -295,6 +297,19 @@
         gameOverText = this.add.text(200, 200, 'Game Ended', textStyle);
         gameOverText.setOrigin(0.5);
         gameOverText.visible = false; // Initially hide the text
+
+        // update map to match game state till now
+        for (const pelletId of prevGameState.pelletsEaten) {
+            pelletLayer.removeTileAt(pelletId[0], pelletId[1])
+        }
+
+        for (const powerUpId of prevGameState.powerUpsEaten) {
+            pelletLayer.removeTileAt(powerUpId[0], powerUpId[1])
+        }
+
+        for (const ghId of prevGameState.ghostsEaten) {
+            playerSprites[ghId].playerInfo.destroy()
+        }
     }
 
     function powerUpCheck() {
@@ -310,8 +325,10 @@
     }
 
     function movePlayer(currentPlayerSpriteType, x = 0, y = 0) {
-        playerSprites[currentPlayerSpriteType].playerInfo.setVelocityY(y);
-        playerSprites[currentPlayerSpriteType].playerInfo.setVelocityX(x);
+        if (playerSprites[currentPlayerSpriteType].playerInfo.active) {
+            playerSprites[currentPlayerSpriteType].playerInfo.setVelocityY(y);
+            playerSprites[currentPlayerSpriteType].playerInfo.setVelocityX(x);
+        }
     }
 
     function update() {
@@ -326,7 +343,6 @@
                 // here so the game doesn't repeatedly redirect
                 isRedirecting = false
             }
-
 
             // Prevent further updates
             this.input.off('pointerdown'); // Remove the event listener to avoid multiple redirects
@@ -387,13 +403,45 @@
         allPlayers[userId].y = playerSprites[currentPlayerSpriteType].playerInfo.y
         allPlayers[userId].spriteAnim = curAnim
 
-
         socket.emit('pos', JSON.stringify(allPlayers[userId]))
     }
 
     function setSpriteAnim(sprite, anim, loop = true) {
         // convert loop to bool
         sprite.anims.play(anim, loop)
+    }
+
+    function pelletCallBack(pacman, pellet) {
+        socket.emit('pellet', JSON.stringify({user: userId, x: pellet.x, y: pellet.y}))
+        // console.log(pelletLayer.tilesDrawn)
+    }
+
+    function powerUpCallBack(pacman, powerUp) {
+        socket.emit('power', JSON.stringify({user: userId, x: powerUp.x, y: powerUp.y}))
+        // console.log(pelletLayer.tilesDrawn)
+    }
+
+    function killPacmanCallBack(ghost, pacman) {
+        // tell all clients pacman is dead
+        socket.emit('pacded', JSON.stringify({user: userId, id: ghost.id}))
+    }
+
+    function setUserNameTextPos(spriteId) {
+        playerSprites[spriteId].userNameTextPos.setText(playerSprites[spriteId]?.username);
+        playerSprites[spriteId]
+            .userNameTextPos
+            .setPosition(
+                playerSprites[spriteId].playerInfo.x - userNameOffSetX,
+                playerSprites[spriteId].playerInfo.y - userNameOffSetY
+            );
+    }
+
+    function setUserNameText(spriteId, text) {
+        if (playerSprites[spriteId].userNameTextPos === null) {
+            console.log('Client is not ready yet to set username text')
+            return
+        }
+        playerSprites[spriteId].userNameTextPos.setText(text);
     }
 
     function pacmanAnimInit(ctx) {
@@ -443,38 +491,6 @@
         mapLayer.setCollisionByExclusion([-1], true, true)
         pelletLayer.setCollisionByExclusion([-1])
         powerLayer.setCollisionByExclusion([-1])
-    }
-
-    function pelletCallBack(pacman, pellet) {
-        socket.emit('pellet', JSON.stringify({x: pellet.x, y: pellet.y}))
-        // console.log(pelletLayer.tilesDrawn)
-    }
-
-    function powerUpCallBack(pacman, powerUp) {
-        socket.emit('power', JSON.stringify({x: powerUp.x, y: powerUp.y}))
-        // console.log(pelletLayer.tilesDrawn)
-    }
-
-    function killPacmanCallBack(ghost, pacman) {
-        // tell all clients pacman is dead
-        socket.emit('pacded', JSON.stringify({id: ghost.id}))
-    }
-
-    function setUserNameTextPos(spriteId) {
-        playerSprites[spriteId]
-            .userNameTextPos
-            .setPosition(
-                playerSprites[spriteId].playerInfo.x - userNameOffSetX,
-                playerSprites[spriteId].playerInfo.y - userNameOffSetY
-            );
-    }
-
-    function setUserNameText(spriteId, text) {
-        if (playerSprites[spriteId].userNameTextPos === null) {
-            console.log('Client is not ready yet to set username text')
-            return
-        }
-        playerSprites[spriteId].userNameTextPos.setText(text);
     }
 
     function ghostsAnimInit(ctx) {

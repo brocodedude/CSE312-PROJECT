@@ -1,21 +1,34 @@
 const Player = require("./player.model");
 
 class LobbyModel {
-    // 1 pacman and 3 ghosts
-    static maxPlayers = 4
-
-    // todo figure out how to do pellets
-
+    matchStarted = false
     // which player is controlling which character
     charactersList = ['gh1', 'gh2', 'gh3', 'pcm']
-    defaultCharacterAnimList = ['pacmanDefault', 'ghostRedNorth', 'ghostBlueNorth', 'ghostPinkNorth']
+    // charactersList = ['gh3', 'pcm']
 
     /**
      * @type {Object.<string, Player>}
      */
     connectedPlayers = {}
+
+    // game state
+    /**
+     *
+     * @type {string[][]}
+     */
+    pelletsEaten = []
+    /**
+     *
+     * @type {string[][]}
+     */
+    powerUpsEaten = []
+    /**
+     *
+     * @type {string[]}
+     */
+    ghostsEaten = []
+
     // stores verified players with their actual id mapped to tmp in game ids
-    verifiedPlayers = {}
 
     /**
      *
@@ -32,36 +45,46 @@ class LobbyModel {
 
         // shuffle the sprite list
         // randomly assign an available sprite
-        // use the last index
-
         this.charactersList = shuffleArray(this.charactersList)
-
-        const lastIndex = this.charactersList.length - 1
-        const spriteId = this.charactersList[lastIndex]
-        const chAnim = this.defaultCharacterAnimList[lastIndex]
+        // remove from available sprite
+        const spriteId = this.charactersList.pop()
+        if (spriteId === undefined) {
+            console.log("no available sprites this should never happen dumbass")
+            return false
+        }
 
         // add new player to lobby
         this.connectedPlayers[playerTmpId] = new Player(
-            'join',
             playerTmpId,
             username,
             spriteId,
             "0",
             "0",
-            chAnim
+            ''
         )
-        // remove from available sprite
-        this.charactersList.pop()
-
         return true
     }
 
+    getGameStateReport() {
+        return {
+            'ghostsEaten': this.ghostsEaten,
+            'pelletsEaten': this.pelletsEaten,
+            'powerUpsEaten':  this.powerUpsEaten,
+        }
+    }
 
     leave(playerTmpId) {
         // get sprite id
         const player = this.connectedPlayers[playerTmpId]
         // return the sprite to available pool
         this.charactersList.push(player.spriteType)
+        // reset if all players are done playing
+        if (this.charactersList.length === 4){
+            this.ghostsEaten = []
+            this.pelletsEaten = []
+            this.powerUpsEaten = []
+        }
+
         // remove player
         delete this.connectedPlayers[playerTmpId]
     }
@@ -69,6 +92,70 @@ class LobbyModel {
     checkIfLobbyIsFull() {
         return this.charactersList.length === 0;
     }
+
+    /**
+     *
+     * @param {number} duration
+     * @param {function(number):void} callBackFunc
+     * @param {function():void} endFunc
+     */
+    startMatchTimer(duration, callBackFunc, endFunc) {
+        let timer = duration, minutes, seconds;
+        this.matchStarted = true
+        let timerInterval = setInterval(function () {
+            minutes = parseInt(timer / 60, 10);
+            seconds = parseInt(timer % 60, 10);
+
+            minutes = minutes < 10 ? "0" + minutes : minutes;
+            seconds = seconds < 10 ? "0" + seconds : seconds;
+
+            callBackFunc(timer)
+
+            if (--timer < 0) {
+                endFunc()
+                timer = duration;
+                clearInterval(timerInterval);
+            }
+        }, 1000);
+    }
+
+    /**
+     *
+     * @param {number} timer
+     */
+    sendTimeLeft(timer) {
+
+    }
+
+    matchOver() {
+    }
+
+    /**
+     *
+     * @param {string} x
+     * @param {string} y
+     */
+    pelletEatenAction(x, y) {
+        this.pelletsEaten.push([x, y])
+    }
+
+    /**
+     *
+     * @param {string} x
+     * @param {string} y
+     */
+    powerUpEatenAction(x, y) {
+        this.powerUpsEaten.push([x, y])
+    }
+
+    /**
+     *
+     * @param {string} ghostID
+     */
+    ghostEatenAction(ghostID) {
+        this.ghostsEaten.push(ghostID)
+    }
+
 }
 
 function shuffleArray(array) {

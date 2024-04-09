@@ -1,10 +1,9 @@
 const {io} = require("../../server");
-const {activeLobbies, socketIds, removeSocketId, setSocketId} = require('./game.service')
+const {activeLobbies, socketIds, setSocketId} = require('./game.service')
 const {removeIdFromIdsList} = require("../lobby_api/lobbyApi.service");
 
-
 // handle joining
-function handleJoinMsg(msg, socket) {
+async function handleJoinMsg(msg, socket) {
     const {lobbyId, userId} = msg
 
     // check for lobbyId and playerId
@@ -16,25 +15,24 @@ function handleJoinMsg(msg, socket) {
         return;
     }
 
-    // TODO check if playerId is valid
-    // check lobby_api id
     const lobby = activeLobbies[lobbyId]
-
     if (lobby === undefined) {
         console.log('Lobby not found')
-        // player will not be known to other clients
-        // or the clients will know about the player
         return
     }
 
     const playerData = lobby.connectedPlayers[userId]
-
     if (playerData === undefined) {
         // player will not be known to other clients
         // or the clients will know about the player
         console.log(`Could not find user in verified list in lobby ${lobbyId}`)
         return;
     }
+
+    // TODO add to database (project requirement)
+    // const tmp = await getLobbyId(lobbyId)
+    // tmp['joined_players']['ids'].push(userId)
+    // await updateIdsList(lobbyId, tmp['joined_players'])
 
     console.log(`Valid Player ${userId} connected to ${lobbyId}`);
 
@@ -51,7 +49,12 @@ function handleJoinMsg(msg, socket) {
         if (currPlayer.playerid !== userId) {
             socket.emit('set', JSON.stringify(currPlayer))
         }
+
     }
+
+    // send this info last so that all players have joined
+    // send new client all game state info till now
+    socket.emit('state', lobby.getGameStateReport())
 }
 
 async function handleDisconnect(disconnectReason, socket) {
@@ -72,7 +75,6 @@ async function handleDisconnect(disconnectReason, socket) {
 
     // get player from lobby_api
     const lobby = activeLobbies[lobbyUUID]
-
     if (lobby === undefined) {
         console.log('invalid lobby_api')
         // do nothing
@@ -80,7 +82,6 @@ async function handleDisconnect(disconnectReason, socket) {
     }
 
     const player = lobby.connectedPlayers[userUUID]
-
     if (player === undefined) {
         console.log('invalid player')
         // do nothing
@@ -101,15 +102,21 @@ function handlePosMsg(msg, socket) {
     socket.broadcast.emit('pos', msg)
 }
 
-function handlePelletMsg(msg, _) {
+function handlePelletMsg(msg, socket) {
+    // update lobby state
+    const data = JSON.parse(msg)
+    activeLobbies[socketIds[socket.id][1]]?.pelletEatenAction(data.x, data.y)
     io.emit('pellet', msg)
 }
 
-function handlePacmanDead(msg, _){
+function handlePacmanDead(msg, socket) {
+    activeLobbies[socketIds[socket.id][1]]?.ghostEatenAction(JSON.parse(msg)?.id)
     io.emit('pacded', msg)
 }
 
-function handlePowerUp(msg, _){
+function handlePowerUp(msg, socket) {
+    const data = JSON.parse(msg)
+    activeLobbies[socketIds[socket.id][1]]?.powerUpEatenAction(data.x, data.y)
     io.emit('power', msg)
 }
 

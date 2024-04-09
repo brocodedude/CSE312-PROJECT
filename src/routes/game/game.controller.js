@@ -1,20 +1,23 @@
 const {io} = require('../../server')
 const express = require("express");
 const {v4: uuidv4} = require("uuid");
-const path = require('path')
 // services
-const {activeLobbies, joinLobby} = require('./game.service')
-const {insertValuesInHTML} = require('../../utils/html_inserter')
-const {getLobbyId, updateIdsList} = require("../lobby_api/lobbyApi.service");
-const {handlePosMsg, handlePelletMsg, handleJoinMsg, handleDisconnect, handlePacmanDead, handlePowerUp} = require('./game.websocket')
+const {activeLobbies} = require('./game.service')
+const {readHtmlFile} = require('../../utils/html_inserter')
+const {getLobbyId} = require("../lobby_api/lobbyApi.service");
+const {
+    handlePosMsg,
+    handlePelletMsg,
+    handleJoinMsg,
+    handleDisconnect,
+    handlePacmanDead,
+    handlePowerUp
+} = require('./game.websocket')
 
 const router = express.Router();
 
-router.get('/play', async (req, res, next) => {
+router.get('/play', async (req, res, _) => {
     console.log('Received join lobby request')
-    // check auth and verify user
-    let userId = req.authDetails.id;
-
     let lobbyId = ''
     try {
         const queryParams = req.url.split('?')[1].split('&')
@@ -24,6 +27,7 @@ router.get('/play', async (req, res, next) => {
         console.log(e)
         res.status(403).send('Make sure the correct parms are passed')
     }
+
     // generate a tmp user id
     const playerTmpUUid = uuidv4()
 
@@ -37,69 +41,104 @@ router.get('/play', async (req, res, next) => {
         const lobbyUUId = tmp['lobby_id']
 
         const result = activeLobbies[lobbyUUId].join(playerTmpUUid, req.authDetails.username)
-
-        // if failed to join lobby_api because its full or something
+        // if failed to join lobby because its full or something
         if (!result) {
             res.status(400).send('Lobby is full try another lobby or you are already joined')
             return
         }
 
-        // add to database
-        tmp['joined_players']['ids'].push(playerTmpUUid)
-        const g = await updateIdsList(lobbyId, tmp['joined_players'])
-
         // insert lobbyid and playerid in html
-        const html = await insertValuesInHTML(
+        const html = await insertIdInHTML(
             './public/game/game.html',
             lobbyUUId,
             playerTmpUUid
         )
 
+        if (html === null) {
+            res.status(500).send('Internal server error')
+        }
+
         res.set('Content-Type', 'text/html');
         res.send(html);
     } catch (e) {
         console.log(e)
-        res.status(403).send('Something went wrong, contact web admins')
+        res.status(500).send('Something went wrong, contact web admins')
     }
 })
 
-router.get('/test', async (req, res, next) => {
-    try {
-        const fPath = path.resolve('./public/game/test.html');
-        res.sendFile(fPath);
-    } catch (e) {
-        console.log(e)
-        res.status(403).send('Something went wrong, contact web admins')
-    }
-})
 
 io.on('connection', (socket) => {
-    socket.on('join', (msg) => {
-        return handleJoinMsg(msg, socket)
+    socket.on('join', async (msg) => {
+        try {
+            return await handleJoinMsg(msg, socket)
+        } catch (e) {
+            console.log(e)
+        }
     })
 
     // handle player pos events
     socket.on('pos', (msg) => {
-        return handlePosMsg(msg, socket)
+        try {
+            return handlePosMsg(msg, socket)
+        } catch (e) {
+            console.log(e)
+        }
     })
 
     // handle player eating pellets events
     socket.on('pellet', (msg) => {
-        return handlePelletMsg(msg, socket)
+        try {
+            return handlePelletMsg(msg, socket)
+        } catch (e) {
+            console.log(e)
+        }
     });
 
     socket.on('pacded', (msg) => {
-        return handlePacmanDead(msg, socket)
+        try {
+            return handlePacmanDead(msg, socket)
+        } catch (e) {
+            console.log(e)
+        }
     });
 
     socket.on('power', (msg) => {
-        return handlePowerUp(msg, socket)
+        try {
+            return handlePowerUp(msg, socket)
+        } catch (e) {
+            console.log(e)
+        }
     });
 
     // handle disconnect
     socket.on('disconnect', (reason) => {
-        return handleDisconnect(reason, socket)
+        try {
+            return handleDisconnect(reason, socket)
+        } catch (e) {
+            console.log(e)
+        }
     });
 })
+
+/**
+ *
+ * @param {string} filePath
+ * @param {string} lobbyId
+ * @param {string} playerTmpId
+ * @return {Promise<Buffer> | null}
+ */
+async function insertIdInHTML(filePath, lobbyId, playerTmpId) {
+    let file
+    try {
+        file = await readHtmlFile(filePath)
+    } catch (e) {
+        console.log(`Failed to load in html file as ${filePath}`)
+        console.log(e)
+        return null
+    }
+    file = file.replace('{{lobby}}', lobbyId);
+    file = file.replace('{{user}}', playerTmpId);
+    return Buffer.from(file, 'utf-8')
+}
 
 module.exports = router

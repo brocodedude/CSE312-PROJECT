@@ -4,6 +4,7 @@ const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 const createError = require('http-errors');
 const bcrypt = require('bcrypt');
+const rateLimit = require('express-rate-limit');
 
 // env vars
 // this might look weird but trust me leave this alone
@@ -34,11 +35,19 @@ app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({extended: false}));
 app.use(cookieParser());
+const limiter = rateLimit({
+    windowMs: 10 * 1000, // 10 seconds
+    limit: 50, // Limit to 50 requests.
+})
+
+app.use(limiter)
 
 app.use((req, res, next) => {
     res.setHeader('X-Content-Type-Options', 'nosniff');
     next();
 });
+
+
 
 app.use((req, res, next) => {
     const ext = path.extname(req.path);
