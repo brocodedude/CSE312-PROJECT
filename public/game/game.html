@@ -237,6 +237,8 @@
         this.load.tilemapTiledJSON('map', "assets/map.json");
     }
 
+    const delay = ms => new Promise(res => setTimeout(res, ms));
+
     function create() {
         // keyboard detect
         cursors = this.input.keyboard.createCursorKeys();
@@ -339,9 +341,11 @@
             gameOverText.visible = true;
 
             if (isRedirecting) {
-                window.location.href = '/lobby';
-                // here so the game doesn't repeatedly redirect
-                isRedirecting = false
+                delay(2000).then(value => {
+                    window.location.href = '/lobby';
+                    // here so the game doesn't repeatedly redirect
+                    isRedirecting = false
+                })
             }
 
             // Prevent further updates
