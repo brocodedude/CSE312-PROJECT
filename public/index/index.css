@@ -1,3 +1,115 @@
 body {
-  background-color: azure;
+  background-color: #000;
+}
+
+h2 {
+  font-family: "Press Start 2P", system-ui;
+  font-weight: 400;
+  font-style: normal;
+  color: #FFF;
+}
+
+.header {
+  font-size: 48px;
+  margin-bottom: 50px;
+}
+
+#pacman-img {
+  margin-bottom: 50px;
+}
+
+#red-ghost {
+  position: absolute;
+  top: 100px;
+  left: 200px;
+  -webkit-transform: scaleX(-1);
+  transform: scaleX(-1);
+}
+
+#orange-ghost {
+  position: absolute;
+  top: 150px;
+  right: 300px;
+}
+
+#blue-ghost {
+  position: absolute;
+  bottom: 50px;
+  left: 100px;
+  -webkit-transform: scaleX(-1);
+  transform: scaleX(-1);
+}
+
+#pink-ghost {
+  position: absolute;
+  bottom: 100px;
+  right: 50px;
+}
+
+.container {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding-top: 1%;
+}
+
+.button {
+  border: 5px solid #FFF;
+  background-color: #000;
+  color: #FFF;
+  font-size: 24px;
+  font-family: "Play", sans-serif;
+  font-weight: 700;
+  font-style: normal;
+  padding: 15px 32px;
+  text-decoration: none;
+  text-align: center;
+  margin-bottom: 25px;
+  cursor: pointer;
+}
+
+.input {
+  padding-top: 10px;
+  padding-bottom: 10px;
+  padding-left: 20px;
+  padding-right: 20px;
+  font-size: 18px;
+  font-family: "Play", sans-serif;
+  font-weight: 700;
+  font-style: normal;
+  margin-bottom: 15px;
+}
+
+.label {
+  color: #FFF;
+  font-size: 24px;
+  font-family: "Play", sans-serif;
+  font-weight: 700;
+  font-style: normal;
+}
+
+input[type=submit] {
+  border: 5px solid #FFF;
+  background-color: #000;
+  color: #FFF;
+  font-size: 24px;
+  font-family: "Play", sans-serif;
+  font-weight: 700;
+  font-style: normal;
+  padding: 15px 32px;
+  text-decoration: none;
+  text-align: center;
+  cursor: pointer;
+}
+
+.login-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#register-btn {
+  margin-top: 75px;
 }
