@@ -26,13 +26,20 @@ router.get('/:id/players', async function (req, res, next) {
         res.status(400).send('Bad Request. Make sure the url is properly formated')
     }
     try {
+        const playerSprites = ['pcm', 'gh1', 'gh2', 'gh3']
         // maps max players to connected players
         let data = {4: '0'}
         const result = await getLobbyId(id)
         if (result) {
             const lobby = activeLobbies[result['lobby_id']]
             if (lobby) {
-                data['4'] = result['joined_players']['ids'].length
+                let counter = 0
+                for (const  sprite of playerSprites){
+                    if (result[sprite] !== null){
+                        counter += 1
+                    }
+                }
+                data['4'] = counter
             }
         }
         res.status(200).send(JSON.stringify(data))

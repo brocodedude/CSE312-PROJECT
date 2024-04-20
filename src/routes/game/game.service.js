@@ -1,12 +1,7 @@
 const express = require('express');
-const {getLobbyId} = require('../lobby_api/lobbyApi.service')
 const db = require("../../db/database");
 const lobbyModel = require('./lobby.model')
-const {v4: uuidv4} = require('uuid');
-const {io} = require("../../server");
-
-const router = express.Router();
-
+express.Router();
 // lobby_api id to LobbyModel
 // on new player check id
 // if lobby_api exists then do something
@@ -32,6 +27,19 @@ function removeSocketId(socketId) {
     delete socketIds[socketId]
 }
 
+/**
+ *
+ * @param {Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>} socketId
+ * @param {string} userTmpId
+ * @return {Object | undefined}
+ */
+function verifySocketId(socketId, userTmpId) {
+    if (userTmpId === undefined) {
+        console.log('userid is empty')
+        return undefined
+    }
+    return socketIds[socketId][0] === userTmpId;
+}
 
 /**
  * Used to load in active lobbies
@@ -59,21 +67,10 @@ function getAllLobbyIds() {
 }
 
 
-/**
- *
- * @param {string} lobby_id - lobby_id
- * @param {string} userId - user id
- * @param {string} playerTmpUUid - tmp user id that is joining
- */
-async function joinLobby(lobby_id, playerTmpUUid, userId) {
-}
-
-
 module.exports = {
     activeLobbies,
-    initActiveLobbies,
-    joinLobby,
     socketIds,
+    initActiveLobbies,
     setSocketId,
     removeSocketId
 }
