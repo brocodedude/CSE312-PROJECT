@@ -20,7 +20,10 @@ exports.up = function (knex) {
         table.foreign('uid').references('id').inTable('users');
         table.string('lobby_name').notNullable();
         table.string('lobby_id').unique().notNullable();
-        table.jsonb('joined_players');
+        table.string('pcm').nullable();
+        table.string('gh1').nullable();
+        table.string('gh2').nullable();
+        table.string('gh3').nullable();
         table.timestamps(true, true);
     });
 };
