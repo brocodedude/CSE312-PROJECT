@@ -40,7 +40,7 @@ router.get('/play', async (req, res, _) => {
         }
         const lobbyUUId = tmp['lobby_id']
 
-        const result = activeLobbies[lobbyUUId].join(playerTmpUUid, req.authDetails.username)
+        const result = activeLobbies[lobbyUUId].join(playerTmpUUid, req.authDetails.username, req.authDetails.id, lobbyId)
         // if failed to join lobby because its full or something
         if (!result) {
             res.status(400).send('Lobby is full try another lobby or you are already joined')

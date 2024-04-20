@@ -1,6 +1,6 @@
 const {io} = require("../../server");
-const {activeLobbies, socketIds, setSocketId} = require('./game.service')
-const {removeIdFromIdsList} = require("../lobby_api/lobbyApi.service");
+const {activeLobbies, socketIds, setSocketId, removeSocketId} = require('./game.service')
+const {getLobbyId, setPlayerIdToSprite} = require("../lobby_api/lobbyApi.service");
 
 // handle joining
 async function handleJoinMsg(msg, socket) {
@@ -30,9 +30,10 @@ async function handleJoinMsg(msg, socket) {
     }
 
     // TODO add to database (project requirement)
-    // const tmp = await getLobbyId(lobbyId)
+    const tmp = await getLobbyId(lobby.playerActualIds[userId][1])
+    const actualPlayerId = lobby.playerActualIds[userId][0]
     // tmp['joined_players']['ids'].push(userId)
-    // await updateIdsList(lobbyId, tmp['joined_players'])
+    await setPlayerIdToSprite(playerData.spriteType, tmp['id'], actualPlayerId)
 
     console.log(`Valid Player ${userId} connected to ${lobbyId}`);
 
@@ -88,11 +89,16 @@ async function handleDisconnect(disconnectReason, socket) {
         return
     }
 
-    // remove player from lobby_api
-    lobby.leave(userUUID)
-    // remove from database
-    await removeIdFromIdsList(userUUID, lobbyUUID)
+    removeSocketId(socket.id)
 
+    // remove player from lobby_api
+    const userData = lobby.leave(userUUID)
+    // remove from database
+    try {
+        await setPlayerIdToSprite(player.spriteType, userData[1], null)
+    } catch (e) {
+        console.log('error removing player form db')
+    }
     // tell connected clients about user leaving
     io.emit('dis', JSON.stringify(player))
 }

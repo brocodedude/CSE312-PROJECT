@@ -3,13 +3,18 @@ const Player = require("./player.model");
 class LobbyModel {
     matchStarted = false
     // which player is controlling which character
-    charactersList = ['gh1', 'gh2', 'gh3', 'pcm']
+    charactersList = ['pcm', 'gh1', 'gh2', 'gh3']
     // charactersList = ['gh3', 'pcm']
 
     /**
      * @type {Object.<string, Player>}
      */
     connectedPlayers = {}
+
+    /**
+     * @type {Object.<string, string[]>}
+     */
+    playerActualIds = {}
 
     // game state
     /**
@@ -34,18 +39,27 @@ class LobbyModel {
      *
      * @param {string} playerTmpId
      * @param {string} username
+     * @param {string} playerActualID
+     * @param {string} lobbyActualId
      * @return {boolean}
      */
-    join(playerTmpId, username) {
+    join(playerTmpId, username, playerActualID, lobbyActualId) {
         // check if lobby is full
         if (this.checkIfLobbyIsFull()) {
             console.log('Lobby is full')
             return false
         }
 
-        // shuffle the sprite list
-        // randomly assign an available sprite
-        this.charactersList = shuffleArray(this.charactersList)
+        // verify user
+        for (const player of Object.values(this.playerActualIds)) {
+            if (player[0] === playerActualID) {
+                console.log('Player already joined lobby')
+                return false
+            }
+        }
+
+        this.playerActualIds[playerTmpId] = [playerActualID, lobbyActualId]
+
         // remove from available sprite
         const spriteId = this.charactersList.pop()
         if (spriteId === undefined) {
@@ -65,13 +79,6 @@ class LobbyModel {
         return true
     }
 
-    getGameStateReport() {
-        return {
-            'ghostsEaten': this.ghostsEaten,
-            'pelletsEaten': this.pelletsEaten,
-            'powerUpsEaten':  this.powerUpsEaten,
-        }
-    }
 
     leave(playerTmpId) {
         // get sprite id
@@ -79,7 +86,7 @@ class LobbyModel {
         // return the sprite to available pool
         this.charactersList.push(player.spriteType)
         // reset if all players are done playing
-        if (this.charactersList.length === 4){
+        if (this.charactersList.length === 4) {
             this.ghostsEaten = []
             this.pelletsEaten = []
             this.powerUpsEaten = []
@@ -87,6 +94,18 @@ class LobbyModel {
 
         // remove player
         delete this.connectedPlayers[playerTmpId]
+
+        const returnData = this.playerActualIds[playerTmpId]
+        delete this.playerActualIds[playerTmpId]
+        return returnData
+    }
+
+    getGameStateReport() {
+        return {
+            'ghostsEaten': this.ghostsEaten,
+            'pelletsEaten': this.pelletsEaten,
+            'powerUpsEaten': this.powerUpsEaten,
+        }
     }
 
     checkIfLobbyIsFull() {

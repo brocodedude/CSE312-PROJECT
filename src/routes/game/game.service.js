@@ -67,22 +67,10 @@ function getAllLobbyIds() {
 }
 
 
-/**
- *
- * @param {string} lobby_id - lobby_id
- * @param {string} userId - user id
- * @param {string} playerTmpUUid - tmp user id that is joining
- */
-async function joinLobby(lobby_id, playerTmpUUid, userId) {
-}
-
-
 module.exports = {
     activeLobbies,
     socketIds,
     initActiveLobbies,
-    joinLobby,
-    verifySocketId,
     setSocketId,
     removeSocketId
 }
