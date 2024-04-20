@@ -3,7 +3,7 @@ const Player = require("./player.model");
 class LobbyModel {
     matchStarted = false
     // which player is controlling which character
-    charactersList = ['pcm', 'gh1', 'gh2', 'gh3']
+    charactersList = ['gh1', 'gh2', 'gh3', 'pcm']
     // charactersList = ['gh3', 'pcm']
 
     /**
