@@ -42,13 +42,13 @@
               const currentUser = await fetchUsername();
               const lobbyTable = document.createElement('table');
               const lobbyListContainer = document.querySelector('.lobby-container');
-              const numRows = Math.ceil(lobbies.length / 2)
+              const numRows = Math.ceil(lobbies.length / 4)
               lobbyListContainer.innerHTML = '';
               //NOW WE MAKE THE TABLE
               for (let i = 0; i < numRows; i++) {
                   const row = lobbyTable.insertRow(); // Insert a new row
-                  for (let j = 0; j < 2; j++) {
-                      const index = i * 2 + j;
+                  for (let j = 0; j < 4; j++) {
+                      const index = i * 4 + j;
                       if (index < lobbies.length) {
                           const cell = row.insertCell(); // Insert a new cell in the row
                           const lobby = lobbies[index];
