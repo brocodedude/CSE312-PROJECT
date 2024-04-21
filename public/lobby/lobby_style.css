@@ -1,11 +1,59 @@
 body {
-    background-color: lightyellow;
+    background-color: #000;
 }
 
-.logout {
-    position: relative;
-    top: -50px;
-    left: 650px;
+.main-container {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  padding-top: 1%;
+}
+
+#user {
+  position: absolute;
+  top: 1%;
+  right: 2%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.profileImage {
+  width: 75px;
+  height: 75px;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+#logout_button {
+  border: 5px solid #FFF;
+  background-color: #000;
+  color: #FFF;
+  font-size: 18px;
+  font-family: "Play", sans-serif;
+  font-weight: 700;
+  font-style: normal;
+  padding: 15px 32px;
+  text-decoration: none;
+  text-align: center;
+  margin-top: 20px;
+  cursor: pointer;
+}
+
+.small-text {
+  color: #FFF;
+  font-size: 16px;
+  font-family: "Play", sans-serif;
+  font-weight: 700;
+  font-style: normal;
+}
+
+.text {
+  color: #FFF;
+  font-size: 24px;
+  font-family: "Play", sans-serif;
+  font-weight: 700;
+  font-style: normal;
 }
 
 .title {
@@ -17,47 +65,54 @@ body {
     margin-right: 10px; /* Adjust as needed */
 }
 
-
-.middle_page{
-    overflow-y: scroll;
-    background-color: aliceblue;
-    height: 450px;
-    width: fit-content;
-    border-style: solid;
+.create-lobby-form {
+  align-self: center;
 }
 
-.lobby-box{
-    background-color: silver;
-    border-style: solid;
-    padding: 5px;
-    width: 300px;
-    height: 240px;
+.lobby-container {
+  overflow-x: scroll;
+  height: 450px;
+  display: flex;
+  flex-direction: row;
+}
+
+.lobby-box {
+  background-color: #000;
+  border: 5px solid #FFF;
+  padding: 5px 10px;
+  margin-right: 20px;
+  width: 300px;
+}
+
+.lobby-count {
+  align-self: center;
+}
+
+.join-button {
+  border: 5px solid #FFF;
+  background-color: #000;
+  color: #FFF;
+  font-size: 16px;
+  font-family: "Play", sans-serif;
+  font-weight: 700;
+  font-style: normal;
+  padding: 10px 16px;
+  text-decoration: none;
+  text-align: center;
+  margin-bottom: 25px;
+  cursor: pointer;
 }
 
 
-table{
-    border-spacing: 20px;
+.lobby-name {
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
 }
 
-.lobby-name{
-    text-overflow: ellipsis;
-    overflow: hidden;
-    white-space: nowrap;
-}
-
-.lobby-buttons{
+.lobby-buttons {
     display: inline-block;
     margin-top: 5px;
-}
-
-.bottom_page{
-}
-
-.profileImage {
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    cursor: pointer;
 }
 
 .lobbyProfileImage {
