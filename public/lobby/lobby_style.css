@@ -56,6 +56,16 @@ body {
   font-style: normal;
 }
 
+.tooltiptext {
+  color: #FFF;
+  font-size: 12px;
+  font-family: "Play", sans-serif;
+  font-weight: 700;
+  font-style: normal;
+  overflow-scrolling: auto;
+  overflow: hidden;
+}
+
 .title {
     display: flex;
     align-items: center;

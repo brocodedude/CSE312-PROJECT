@@ -13,7 +13,7 @@
 </head>
 <body>
 
-<div class="main-container"">
+<div class="main-container">
   <div id="user">
     <form action="/api/updateProfileImage" method="post" enctype="multipart/form-data">
       <label for="profileImage">
@@ -21,6 +21,7 @@
       </label>
       <input type="file" id="profileImage" name="avatar" style="display: none;" />
     </form>
+    <p id="tootip" class="tooltiptext">Click icon to add image</p>
     <p id="username" class="text"></p>
     <button id="logout_button" onclick="logout()">Logout</button>
   </div>
