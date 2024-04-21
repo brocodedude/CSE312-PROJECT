@@ -96,7 +96,7 @@
 
     // pacman dead
     socket.on('pacded', function (msg) {
-        if (playerSprites['pcm'].isPoweredUp === 0 || playerSprites['pcm'].isPoweredUp > 1200) {
+        if (playerSprites['pcm'].isPoweredUp === 0) {
             console.log('Received pacman is dead')
             playerSprites['pcm'].playerInfo.destroy()
             gameEnd = true
@@ -126,6 +126,7 @@
     let cursors;
     let gameEnd = false
     let gameOverText
+    let spectatingText
     let isRedirecting = true
     // mapped sprite id with:
     // playerInfo
@@ -280,7 +281,7 @@
 
             if (playerType === 'pcm') {
                 // if pacman
-                this.physics.add.collider(tmp, pelletLayer, pelletCallBack)
+                this.physics.add.overlap(tmp, pelletLayer, pelletCallBack)
                 this.physics.add.collider(tmp, powerLayer, powerUpCallBack)
             } else {
                 // if ghosts collide with pacman
@@ -295,10 +296,17 @@
         }
 
         // Set up the "Game Ended" text
-        const textStyle = {fontFamily: 'Arial', fontSize: 48, color: '#ffffff'};
-        gameOverText = this.add.text(200, 200, 'Game Ended', textStyle);
+        const textStyle = {fontFamily: 'Arial', fontSize: 48, color: '#00ffc7'};
+        gameOverText = this.add.text(700, 450, 'Game Ended', textStyle);
         gameOverText.setOrigin(0.5);
         gameOverText.visible = false; // Initially hide the text
+
+        // Set up the "Spectating" text
+        const spectatingTextStyle = {fontFamily: 'Arial', fontSize: 48, color: '#00ffc7'};
+        spectatingText = this.add.text(800, 30, 'You were eaten... spectating', spectatingTextStyle);
+        spectatingText.setOrigin(0.5);
+        spectatingText.visible = false; // Initially hide the text
+
 
         // update map to match game state till now
         for (const pelletId of prevGameState.pelletsEaten) {
@@ -334,20 +342,17 @@
     }
 
     function update() {
-        powerUpCheck();
 
         if (gameEnd) {
             // Show the "Game Ended" text
             gameOverText.visible = true;
-
             if (isRedirecting) {
+                // here so the game doesn't repeatedly redirect
+                isRedirecting = false
                 delay(2000).then(value => {
                     window.location.href = '/lobby';
-                    // here so the game doesn't repeatedly redirect
-                    isRedirecting = false
                 })
             }
-
             // Prevent further updates
             this.input.off('pointerdown'); // Remove the event listener to avoid multiple redirects
             return;
@@ -360,7 +365,16 @@
             return
         }
 
+        powerUpCheck();
+
         let currentPlayerSpriteType = allPlayers[userId].spriteType
+
+        if (!playerSprites[currentPlayerSpriteType].playerInfo.active) {
+            spectatingText.visible = true
+            console.log('You are killed')
+            return;
+        }
+
         // anims
         const neutralAnim = playerSprites[currentPlayerSpriteType].defaultAnim
         const anim = playerSprites[currentPlayerSpriteType].animBase
