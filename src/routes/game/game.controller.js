@@ -111,9 +111,9 @@ io.on('connection', (socket) => {
     });
 
     // handle disconnect
-    socket.on('disconnect', (reason) => {
+    socket.on('disconnect', async (reason) => {
         try {
-            return handleDisconnect(reason, socket)
+            return await handleDisconnect(reason, socket)
         } catch (e) {
             console.log(e)
         }
