@@ -11,7 +11,17 @@ h2 {
 
 .header {
   font-size: 48px;
-  margin-bottom: 50px;
+  margin-bottom: 20px;
+  align-self: center;
+}
+
+.container {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding-top: 1%;
 }
 
 #pacman-img {
@@ -24,12 +34,14 @@ h2 {
   left: 200px;
   -webkit-transform: scaleX(-1);
   transform: scaleX(-1);
+  z-index: 0;
 }
 
 #orange-ghost {
   position: absolute;
   top: 150px;
   right: 300px;
+  z-index: 0;
 }
 
 #blue-ghost {
@@ -38,22 +50,17 @@ h2 {
   left: 100px;
   -webkit-transform: scaleX(-1);
   transform: scaleX(-1);
+  z-index: 0;
 }
 
 #pink-ghost {
   position: absolute;
   bottom: 100px;
   right: 50px;
+  z-index: 0;
 }
 
-.container {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding-top: 1%;
-}
+
 
 .button {
   border: 5px solid #FFF;
