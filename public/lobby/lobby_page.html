@@ -67,6 +67,8 @@
                           cell.innerHTML = `
                           <div class="lobby-box">
                               <div class="lobby-name">
+                                  <p class="small-text">${formedDate}</p>
+                                  <hr>
                                   <p class="text">Lobby: ${lobby.lobby_name}</p>
                                   <img src="${lobby.profile_image_url ? lobby.profile_image_url : '../images/default_profile.jpeg'}" alt="Lobby owner profile image" class="lobbyProfileImage"/>
                                   <p class="text">Owner: ${lobby.username}</p>
