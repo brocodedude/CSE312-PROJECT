@@ -51,10 +51,11 @@ class LobbyModel {
         }
 
         // verify user
-        for (const player of Object.values(this.playerActualIds)) {
-            if (player[0] === playerActualID) {
-                console.log('Player already joined lobby')
-                return false
+        for (const playerUUID of Object.keys(this.playerActualIds)) {
+            if (this.playerActualIds[playerUUID][0] === playerActualID) {
+                this.leave(playerUUID)
+                console.log('Stale information found, Resetting player info')
+                // return false
             }
         }
 
