@@ -10,6 +10,7 @@ body {
 }
 
 #user {
+  z-index: 1;
   position: absolute;
   top: 1%;
   right: 2%;
@@ -18,7 +19,13 @@ body {
   align-items: center;
 }
 
+#username {
+  text-overflow: ellipsis;
+  max-width: 30ch;
+}
+
 .profileImage {
+  z-index: 1;
   width: 75px;
   height: 75px;
   border-radius: 50%;
@@ -26,6 +33,7 @@ body {
 }
 
 #logout_button {
+  z-index: 1;
   border: 5px solid #FFF;
   background-color: #000;
   color: #FFF;
@@ -40,7 +48,25 @@ body {
   cursor: pointer;
 }
 
+#blue-ghost {
+  z-index: -1;
+  position: absolute;
+}
+#orange-ghost {
+  z-index: -1;
+  position: absolute;
+}
+#pink-ghost {
+  z-index: -1;
+  position: absolute;
+}
+#red-ghost {
+  z-index: -1;
+  position: absolute;
+}
+
 .small-text {
+  z-index: 1;
   color: #FFF;
   font-size: 16px;
   font-family: "Play", sans-serif;
@@ -49,6 +75,7 @@ body {
 }
 
 .text {
+  z-index: 1;
   color: #FFF;
   font-size: 24px;
   font-family: "Play", sans-serif;
@@ -57,6 +84,7 @@ body {
 }
 
 .tooltiptext {
+  z-index: 1;
   color: #FFF;
   font-size: 12px;
   font-family: "Play", sans-serif;
@@ -67,19 +95,23 @@ body {
 }
 
 .title {
+    z-index: 1;
     display: flex;
     align-items: center;
 }
 
 .title h1 {
+    z-index: 1;
     margin-right: 10px; /* Adjust as needed */
 }
 
 .create-lobby-form {
+  z-index: 1;
   align-self: center;
 }
 
 .lobby-container {
+  z-index: 1;
   overflow-x: scroll;
   height: 450px;
   display: flex;
@@ -87,6 +119,7 @@ body {
 }
 
 .lobby-box {
+  z-index: 1;
   background-color: #000;
   border: 5px solid #FFF;
   padding: 5px 10px;

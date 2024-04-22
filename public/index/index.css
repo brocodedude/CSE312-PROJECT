@@ -7,12 +7,14 @@ h2 {
   font-weight: 400;
   font-style: normal;
   color: #FFF;
+  z-index: 1;
 }
 
 .header {
   font-size: 48px;
   margin-bottom: 20px;
   align-self: center;
+  z-index: 1;
 }
 
 .container {
@@ -22,6 +24,7 @@ h2 {
   align-items: center;
   justify-content: center;
   padding-top: 1%;
+  z-index: 1;
 }
 
 #pacman-img {
@@ -34,14 +37,14 @@ h2 {
   left: 200px;
   -webkit-transform: scaleX(-1);
   transform: scaleX(-1);
-  z-index: 0;
+  z-index: -1;
 }
 
 #orange-ghost {
   position: absolute;
   top: 150px;
   right: 300px;
-  z-index: 0;
+  z-index: -1;
 }
 
 #blue-ghost {
@@ -50,14 +53,14 @@ h2 {
   left: 100px;
   -webkit-transform: scaleX(-1);
   transform: scaleX(-1);
-  z-index: 0;
+  z-index: -1;
 }
 
 #pink-ghost {
   position: absolute;
   bottom: 100px;
   right: 50px;
-  z-index: 0;
+  z-index: -1;
 }
 
 
@@ -75,6 +78,7 @@ h2 {
   text-align: center;
   margin-bottom: 25px;
   cursor: pointer;
+  z-index: 1;
 }
 
 .input {
@@ -87,6 +91,7 @@ h2 {
   font-weight: 700;
   font-style: normal;
   margin-bottom: 15px;
+  z-index: 1;
 }
 
 .label {
@@ -95,6 +100,7 @@ h2 {
   font-family: "Play", sans-serif;
   font-weight: 700;
   font-style: normal;
+  z-index: 1;
 }
 
 input[type=submit] {
@@ -109,14 +115,17 @@ input[type=submit] {
   text-decoration: none;
   text-align: center;
   cursor: pointer;
+  z-index: 1;
 }
 
 .login-container {
   display: flex;
   align-items: center;
   justify-content: center;
+  z-index: 1;
 }
 
 #register-btn {
   margin-top: 75px;
+  z-index: 1;
 }
