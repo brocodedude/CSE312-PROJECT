@@ -113,7 +113,7 @@ body {
 .lobby-container {
   z-index: 1;
   overflow-x: scroll;
-  height: 450px;
+  height: 700px;
   display: flex;
   flex-direction: row;
 }
