@@ -43,15 +43,17 @@ const {server, app} = require('./server')
 const db = require('./db/database');
 const authTokenValidator = require("./middleware/auth_token_validator");
 const {updateAuthToken, verifyAuthToken} = require("./routes/login/login.service");
-const {configDotenv} = require("dotenv");
+require('dotenv').config({path:'.env'}); // Load variables from .env file
+require('dotenv').config({path:'../../.env'}); // Load variables from .env file if using cli
+
 
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({extended: false}));
 app.use(cookieParser());
 const limiter = rateLimit({
-    windowMs: 10 * 1000, // 10 seconds
-    limit: 50, // Limit to 50 requests.
+    windowMs: parseInt(process.env.TIME_LIMIT) * 1000, // defined in .env
+    limit: parseInt(process.env.REQUEST_LIMIT), // define in .env
 })
 
 app.use(limiter)
@@ -130,7 +132,7 @@ app.get('/', async (req, res, next) => {
 })
 app.use('/login', loginRouter)
 // validator to verify user, only logged-in users can access these paths
-app.use('/lobby', authTokenValidator, lobbyRouter)
+app.use('/lobby',  authTokenValidator, lobbyRouter)
 app.use('/game', authTokenValidator, gameRouter)
 app.use('/api/lobby', authTokenValidator, lobbyApiRouter)
 
