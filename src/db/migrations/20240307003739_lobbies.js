@@ -24,6 +24,7 @@ exports.up = function (knex) {
         table.string('gh1').nullable();
         table.string('gh2').nullable();
         table.string('gh3').nullable();
+        table.boolean('joinable').defaultTo(true);
         table.timestamps(true, true);
     });
 };

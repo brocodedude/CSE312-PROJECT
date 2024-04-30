@@ -6,7 +6,7 @@ const createError = require('http-errors');
 const bcrypt = require('bcrypt');
 const rateLimit = require('express-rate-limit');
 
-const multer = require('multer')
+const multer = require('multer');
 
 // Set up multer to store uploads in the 'uploads/' directory
 const storage = multer.diskStorage({

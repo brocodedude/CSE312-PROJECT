@@ -1,3 +1,21 @@
+// Initialize a Socket.IO connection
+const socket = io.connect('http://localhost:8080');
+
+socket.on('lobbyTimer', function(data) {
+  document.getElementById(`${data.lobbyId}-timer`).innerHTML = ` <p class="text">Time Left to Join: ${data.timer}</p>`;
+});
+
+socket.on('inProgress', function(data) {
+  document.getElementById(`${data.lobbyId}-timer`).innerHTML = '';
+  document.getElementById(`${data.lobbyId}-progress`).innerHTML = ` <p class="text">Game in progress!</p>`;
+  const joinButton = document.getElementById(`${data.lobbyId}-join`);
+  
+  // Remove the "join" button
+  if (joinButton) {
+    joinButton.parentNode.removeChild(joinButton);
+  }
+});
+
 async function fetchLobbies() {
     try {
         const response = await fetch('/api/lobby');

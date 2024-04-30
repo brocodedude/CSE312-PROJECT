@@ -1,12 +1,14 @@
 const express = require('express');
 const router = express.Router();
-const {list, insert, getLobbyId, _delete, update} = require('./lobbyApi.service')
+const {list, insert, getLobbyId, _delete, update, updateJoinable} = require('./lobbyApi.service')
 const validator = require('./lobbyApi.middleware')
 const {v4: uuidv4} = require('uuid');
 const {validationResult} = require("express-validator");
 const he = require('he');
 const {activeLobbies} = require("../game/game.service");
 const LobbyModel = require("../game/lobby.model");
+
+const { io } = require('../../server');
 
 router.get('/', async function (req, res, next) {
     try {
@@ -87,7 +89,21 @@ router.post('/', validator, async function (req, res, next) {
         const result = await insert(req.authDetails.id, lobby_name, lobbyId)
         // add to active lobbies
         activeLobbies[lobbyId] = new LobbyModel()
+
         res.status(201).send(JSON.stringify(result[0]))
+
+        let timer = 30;
+        const interval = setInterval(async () => {
+            if (timer === 0) {
+                clearInterval(interval);
+                // Set lobby as unjoinable.
+                const result = await updateJoinable(req.authDetails.id, lobbyId);
+                io.emit('inProgress', { lobbyId })
+                return;
+            }
+            io.emit('lobbyTimer', { lobbyId, timer })
+            timer -= 1
+        }, 1000);
     } catch (e) {
         console.error(e)
         res.status(400).send('Bad request. Make sure you are sending the correct data with correct values')

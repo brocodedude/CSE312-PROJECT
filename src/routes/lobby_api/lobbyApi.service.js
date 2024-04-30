@@ -2,7 +2,7 @@ const db = require('../../db/database');
 
 function list() {
     return db
-        .select('lobbies.id', 'lobbies.lobby_name', 'lobbies.created_at', 'users.username', 'users.profile_image_url').from('lobbies')
+        .select('lobbies.id', 'lobby_id', 'lobbies.lobby_name', 'lobbies.created_at', 'users.username', 'users.profile_image_url', 'lobbies.joinable').from('lobbies')
         .join('users', 'lobbies.uid', 'users.id');
 }
 
@@ -56,6 +56,10 @@ function update(uid, id, lobbyName) {
     return db.where('id', id).where('uid', uid).update({'lobby_name': lobbyName}).from('lobbies').returning('id')
 }
 
+function updateJoinable(uid, lobbyId) {
+  return db.where('lobby_id', lobbyId).where('uid', uid).update({'joinable': false}).from('lobbies').returning('id')
+}
+
 
 /**
  * @param {string} spriteID
@@ -84,5 +88,6 @@ module.exports = {
     insert,
     _delete,
     update,
+    updateJoinable,
     setPlayerIdToSprite
 }
