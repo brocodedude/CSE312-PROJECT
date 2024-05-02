@@ -4,7 +4,7 @@ const {v4: uuidv4} = require("uuid");
 // services
 const {activeLobbies} = require('./game.service')
 const {readHtmlFile} = require('../../utils/html_inserter')
-const {getLobbyId} = require("../lobby_api/lobbyApi.service");
+const {getLobbyId, updateJoinable} = require("../lobby_api/lobbyApi.service");
 const {
     handlePosMsg,
     handlePelletMsg,
@@ -13,6 +13,7 @@ const {
     handlePacmanDead,
     handlePowerUp
 } = require('./game.websocket')
+
 
 const router = express.Router();
 
@@ -46,6 +47,20 @@ router.get('/play', async (req, res, _) => {
             res.status(400).send('Lobby is full try another lobby or you are already joined')
             return
         }
+
+        let timer = 30;
+        const interval = setInterval(async () => {
+            if (timer === 0) {
+                clearInterval(interval);
+                // Set lobby as unjoinable.
+                const result = await updateJoinable(req.authDetails.id, lobbyUUId);
+                activeLobbies[lobbyUUId].joinable = false;
+                io.emit('inProgress', { lobbyId: lobbyUUId})
+                return;
+            }
+            io.emit('lobbyTimer', { lobbyId: lobbyUUId, timer})
+            timer -= 1
+        }, 1000);
 
         // insert lobbyid and playerid in html
         const html = await insertIdInHTML(

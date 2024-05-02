@@ -92,18 +92,6 @@ router.post('/', validator, async function (req, res, next) {
 
         res.status(201).send(JSON.stringify(result[0]))
 
-        let timer = 30;
-        const interval = setInterval(async () => {
-            if (timer === 0) {
-                clearInterval(interval);
-                // Set lobby as unjoinable.
-                const result = await updateJoinable(req.authDetails.id, lobbyId);
-                io.emit('inProgress', { lobbyId })
-                return;
-            }
-            io.emit('lobbyTimer', { lobbyId, timer })
-            timer -= 1
-        }, 1000);
     } catch (e) {
         console.error(e)
         res.status(400).send('Bad request. Make sure you are sending the correct data with correct values')
