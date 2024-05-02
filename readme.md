@@ -2,43 +2,19 @@
 
 Link: https://multipacman.live
 
-## Quick Start
+## Custom feature
 
-Run the following commands ( assuming you are in project root )
+Animations: We added animations
+to the game which allows players to see animations when a character moves.
 
-* In production
-  * With docker
-    * ```
-      docker compose up
-      ```
-    * Server will be accessible at [localhost:8080](http://localhost:9006)
-  * Without docker
-    * ```
-      npm install
-      npm run start
-      ```
-    * Server will be accessible at [localhost:9000](http://localhost:9000)
+Testing procedure:
 
-* for development server
-  * ```
-      npm install
-      npm run dev
-      ```
-  * Server will be accessible at [localhost:9000](http://localhost:9000)
+1. Open first browser connect to a game.
 
-## Database stuff
+2. Open second browser connect to the same game as first browser.
 
-We are using knex library for connecting with our postgres backend
+3. Move character in first browser, 
+make sure that the character in the other browser has the same animation as the character you are controlling.
 
-### Usage 
-
-To call the database anywhere in the app use
-
-```
-const db = require('../db/database');
-```
-
-Use db according to [docs](https://knexjs.org/guide/query-builder.html)
-
-
-## TODO
+4. Move character in second browser, 
+make sure that the character in the other browser has the same animation as the character you are controlling.
