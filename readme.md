@@ -2,6 +2,11 @@
 
 Link: https://multipacman.live
 
+NOTE:
+
+Timing feature does not work on live deployment,
+must be tested locally
+
 ## Custom feature
 
 Animations: We added animations
